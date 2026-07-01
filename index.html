@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>一連続勤務チェッカー</title>
+<style>
+  :root{
+    --bg:#0a0d10;
+    --panel:#12171c;
+    --panel2:#171d24;
+    --line:#232b33;
+    --amber:#ffb547;
+    --amber-dim:#7a5a26;
+    --green:#3ddc84;
+    --green-dim:#1c5c3d;
+    --red:#ff5d5d;
+    --red-dim:#5c1c1c;
+    --text:#dfe6ea;
+    --muted:#7c8b96;
+    --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    padding:16px;
+    max-width:900px;
+    margin:0 auto;
+    padding-bottom:80px;
+  }
+  h1{
+    font-size:15px;
+    letter-spacing:.12em;
+    color:var(--amber);
+    text-transform:uppercase;
+    margin:0 0 2px;
+    font-weight:700;
+  }
+  .sub{
+    color:var(--muted);
+    font-size:11.5px;
+    margin:0 0 16px;
+    line-height:1.5;
+  }
+  .disclaimer{
+    background:var(--panel2);
+    border:1px solid var(--line);
+    border-left:3px solid var(--amber);
+    border-radius:4px;
+    padding:8px 10px;
+    font-size:11px;
+    color:var(--muted);
+    line-height:1.6;
+    margin-bottom:18px;
+  }
+  section{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:14px;
+    margin-bottom:14px;
+  }
+  .sec-title{
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .sec-title .num{
+    color:var(--amber);
+    font-family:var(--mono);
+  }
+  .row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:flex-end;
+  }
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    min-width:0;
+  }
+  .field label{
+    font-size:10px;
+    color:var(--muted);
+    letter-spacing:.02em;
+  }
+  input[type=time], input[type=number], select{
+    background:#0d1216;
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:13px;
+    padding:6px 8px;
+    border-radius:5px;
+    outline:none;
+    width:100%;
+  }
+  input[type=time]{min-width:96px;}
+  input[type=number]{width:72px;}
+  select{min-width:110px;}
+  input:focus, select:focus{border-color:var(--amber);}
+  .checkline{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    color:var(--text);
+  }
+  .checkline input{accent-color:var(--amber);}
+
+  /* legs */
+  .leg{
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:10px;
+    margin-bottom:10px;
+    background:var(--panel2);
+    position:relative;
+  }
+  .leg-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  .leg-head .tag{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--amber);
+    letter-spacing:.05em;
+  }
+  .rmv{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--muted);
+    font-size:10px;
+    padding:3px 7px;
+    border-radius:4px;
+    cursor:pointer;
+  }
+  .rmv:hover{border-color:var(--red);color:var(--red);}
+  .add-leg{
+    width:100%;
+    padding:9px;
+    background:none;
+    border:1px dashed var(--line);
+    color:var(--muted);
+    border-radius:6px;
+    font-size:12px;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  .add-leg:hover{border-color:var(--amber);color:var(--amber);}
+
+  .gap{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 4px;
+    margin:-4px 0 6px;
+    font-size:11px;
+    color:var(--muted);
+    flex-wrap:wrap;
+  }
+  .gap .dur{
+    font-family:var(--mono);
+    color:var(--green);
+    font-size:13px;
+  }
+  .gap .rule{
+    font-family:var(--mono);
+    padding:2px 6px;
+    border-radius:3px;
+    background:#0d1216;
+    border:1px solid var(--line);
+  }
+
+  /* timeline */
+  .timeline{
+    display:flex;
+    height:26px;
+    border-radius:4px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    margin:10px 0 4px;
+  }
+  .tl-duty{background:var(--amber-dim);}
+  .tl-rest{background:var(--green-dim);}
+  .tl-cut{background:var(--red-dim);}
+  .tl-label{
+    font-size:9.5px;
+    color:var(--muted);
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--mono);
+  }
+
+  /* results */
+  .gauge{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    justify-content:center;
+    padding:14px 0 6px;
+  }
+  .gauge .big{
+    font-family:var(--mono);
+    font-size:44px;
+    font-weight:700;
+    letter-spacing:-.01em;
+  }
+  .gauge .unit{
+    font-size:13px;
+    color:var(--muted);
+  }
+  .status-ok .big{color:var(--green);}
+  .status-warn .big{color:var(--amber);}
+  .status-bad .big{color:var(--red);}
+  .gauge-caption{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:10px;
+  }
+  .kv-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px 16px;
+    font-size:12px;
+  }
+  .kv{
+    display:flex;
+    justify-content:space-between;
+    border-bottom:1px dotted var(--line);
+    padding:4px 0;
+  }
+  .kv .k{color:var(--muted);}
+  .kv .v{font-family:var(--mono);color:var(--text);}
+  .kv .v.hi{color:var(--amber);}
+
+  .banner{
+    border-radius:6px;
+    padding:10px 12px;
+    font-size:12.5px;
+    line-height:1.7;
+    margin-top:10px;
+  }
+  .banner.ok{background:var(--green-dim);color:#c9ffe4;border:1px solid #2a7a54;}
+  .banner.bad{background:var(--red-dim);color:#ffd6d6;border:1px solid #8a2c2c;}
+  .banner b{font-family:var(--mono);}
+
+  details{margin-top:10px;}
+  summary{
+    font-size:11px;
+    color:var(--muted);
+    cursor:pointer;
+    letter-spacing:.05em;
+  }
+  table.ref{
+    width:100%;
+    border-collapse:collapse;
+    font-size:10.5px;
+    margin-top:8px;
+    font-family:var(--mono);
+  }
+  table.ref th, table.ref td{
+    border:1px solid var(--line);
+    padding:4px 5px;
+    text-align:center;
+  }
+  table.ref th{color:var(--amber);background:#0d1216;font-weight:400;}
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:10px;
+    margin-top:20px;
+    line-height:1.8;
+  }
+</style>
+</head>
+<body>
+
+<h1>一連続勤務チェッカー</h1>
+<p class="sub">2名編成（機長／副操縦士）専用 &middot; OM 5.8 準拠参照ツール</p>
+
+<div class="disclaimer">
+  これは個人用の参照ツールです。会社の正式な乗務割・BRICの判定に優先するものではありません。
+  時差順応地域の判定（OM 5.8.2.1）や不測の事態への対応（5.8.3.6）はPICの判断事項のため自動判定していません。
+  実運用前に必ずBRIC／機長判断で確認してください。空港到着後の業務終了バフ値は OM に明記が無いため就業規程第22条を参照した推定値です。
+</div>
+
+<!-- ==== 1. 基本設定 ==== -->
+<section>
+  <p class="sec-title"><span class="num">01</span> 基本設定</p>
+  <div class="row">
+    <div class="field">
+      <label>時差順応地域のUTCオフセット (h)</label>
+      <input type="number" id="offset" value="9" step="0.5">
+    </div>
+    <div class="field">
+      <label>基地からの出発</label>
+      <select id="fromBase">
+        <option value="yes">基地発</option>
+        <option value="no">現地発</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>超過時の必要休養（現地/基地）</label>
+      <select id="restType">
+        <option value="15">基地：連続15時間</option>
+        <option value="11" selected>基地以外：連続11時間</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>次便S/Uリード (分)</label>
+      <input type="number" id="nextLead" value="90">
+    </div>
+  </div>
+</section>
+
+<!-- ==== 2. 乗務区間 ==== -->
+<section>
+  <p class="sec-title"><span class="num">02</span> 乗務区間（すべてUTC入力）</p>
+  <div id="legs"></div>
+  <button class="add-leg" onclick="addLeg()">＋ 区間を追加</button>
+</section>
+
+<!-- ==== 3. タイムライン ==== -->
+<section>
+  <p class="sec-title"><span class="num">03</span> タイムライン</p>
+  <div class="timeline" id="timelineBar"></div>
+  <div class="tl-label"><span id="tlStart">--:--z</span><span id="tlEnd">--:--z</span></div>
+</section>
+
+<!-- ==== 4. 判定結果 ==== -->
+<section>
+  <p class="sec-title"><span class="num">04</span> 判定結果</p>
+  <div class="gauge" id="gaugeWrap">
+    <span class="big" id="marginBig">--</span><span class="unit">分の余裕</span>
+  </div>
+  <p class="gauge-caption" id="gaugeCaption">区間を入力してください</p>
+
+  <div class="kv-grid">
+    <div class="kv"><span class="k">飛行勤務開始 (現地想定)</span><span class="v" id="kvSuLocal">--</span></div>
+    <div class="kv"><span class="k">適用時間帯 / 着陸回数</span><span class="v" id="kvBand">--</span></div>
+    <div class="kv"><span class="k">一連続勤務時間（減算前）</span><span class="v" id="kvTotal">--</span></div>
+    <div class="kv"><span class="k">休養減算</span><span class="v" id="kvDeduction">--</span></div>
+    <div class="kv"><span class="k">飛行勤務時間（減算後）</span><span class="v hi" id="kvFdp">--</span></div>
+    <div class="kv"><span class="k">飛行勤務時間 上限</span><span class="v hi" id="kvLimit">--</span></div>
+  </div>
+
+  <div class="banner ok" id="bannerOk" style="display:none;">
+    現在の予定で <b id="bnMargin">--</b> の余裕があります。<br>
+    最終区間の到着が現在予定よりこれ以上遅れなければ、一連続勤務の上限内に収まります。
+  </div>
+  <div class="banner bad" id="bannerBad" style="display:none;">
+    一連続勤務の上限を <b id="bnOver">--</b> 超過しています。<br>
+    最終区間の業務終了時刻を基準に、<b id="bnRestUntil">--</b> まで休養が必要です（<span id="bnRestNote"></span>）。<br>
+    次便S/Uが可能なのは <b id="bnNextSu">--</b> 以降です。
+  </div>
+
+  <details>
+    <summary>OM 5.8.2.2.1 上限表（2名編成）を表示</summary>
+    <table class="ref" id="refTable"></table>
+  </details>
+</section>
+
+<footer>OM 5.8 / 就業規程 参照 &middot; 個人検証用ツール &middot; 会社の正式判定に代わるものではありません</footer>
+
+<script>
+/* ============ 定数 ============ */
+const FDP_TABLE = {
+  '00:00-04:59': {2:[9*60,11*60],   3:[8*60,10*60+30], 4:[8*60,10*60],    5:[8*60,9*60+30],  6:[8*60,9*60]},
+  '05:00-05:59': {2:[10*60,12*60],  3:[9*60,11*60+30], 4:[9*60,11*60],    5:[9*60,10*60+30], 6:[9*60,10*60]},
+  '06:00-13:59': {2:[10*60,13*60],  3:[9*60,12*60+30], 4:[9*60,12*60],    5:[9*60,11*60+30], 6:[9*60,11*60]},
+  '14:00-15:59': {2:[10*60,12*60],  3:[9*60,11*60+30], 4:[9*60,11*60],    5:[9*60,10*60+30], 6:[9*60,10*60]},
+  '16:00-16:59': {2:[10*60,11*60],  3:[9*60,10*60+30], 4:[9*60,10*60],    5:[9*60,9*60+30],  6:[9*60,9*60]},
+  '17:00-23:59': {2:[9*60,11*60],   3:[8*60,10*60+30], 4:[8*60,10*60],    5:[8*60,9*60+30],  6:[8*60,9*60]},
+};
+const BAND_ORDER = ['00:00-04:59','05:00-05:59','06:00-13:59','14:00-15:59','16:00-16:59','17:00-23:59'];
+// 業務終了バフ（分）: 就業規程第22条(2) 参照値（OM未明記のため推定）
+const BUFFER = {
+  'HND_NRT_NO':30, 'OTHER_NO':20, 'HND_NRT_YES':60, 'OSAKA_NAGOYA_YES':30, 'OTHER_YES':30
+};
+
+let legIdSeq = 0;
+let legs = [];
+let gapNightOk = {};   // gap index -> boolean (ローカルナイト+8h睡眠+時差2h以内)
+let dedGapIndex = 0;   // 減算対象に指定するギャップの index
+
+function newLeg(preset){
+  legIdSeq++;
+  return Object.assign({
+    id:legIdSeq, type:'REV', std:'', suLead:90, suOverride:'',
+    ata:'', arrAirport:'HND_NRT', customs:'NO'
+  }, preset||{});
+}
+
+function addLeg(preset){
+  legs.push(newLeg(preset));
+  gapNightOk = {};
+  dedGapIndex = 0;
+  render();
+}
+function removeLeg(id){
+  legs = legs.filter(l=>l.id!==id);
+  gapNightOk = {};
+  dedGapIndex = 0;
+  render();
+}
+
+/* ============ 時刻ユーティリティ ============ */
+// HH:MM文字列 と 直前カーソル(分, 通算)から、日跨ぎを自動判定してカーソルを進める
+function advance(hhmm, prevCursor){
+  if(!hhmm) return null;
+  const [h,m] = hhmm.split(':').map(Number);
+  const day = Math.floor(prevCursor/1440);
+  let cand = day*1440 + h*60+m;
+  if(cand < prevCursor) cand += 1440;
+  return cand;
+}
+function fmtHM(mins){
+  if(mins===null||mins===undefined||isNaN(mins)) return '--:--';
+  const sign = mins<0?'-':'';
+  mins = Math.abs(Math.round(mins));
+  const h = Math.floor(mins/60), m = mins%60;
+  return `${sign}${h}:${String(m).padStart(2,'0')}`;
+}
+function fmtClock(cursorMin){
+  if(cursorMin===null||cursorMin===undefined||isNaN(cursorMin)) return '--:--z';
+  const m = ((cursorMin%1440)+1440)%1440;
+  const dayOffset = Math.floor(cursorMin/1440);
+  const h = Math.floor(m/60), mm = m%60;
+  return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}z${dayOffset>0?'(+'+dayOffset+'d)':''}`;
+}
+function localBand(cursorMin, offsetH){
+  const localMin = ((cursorMin + offsetH*60)%1440 + 1440)%1440;
+  const h = Math.floor(localMin/60);
+  if(h<5) return '00:00-04:59';
+  if(h<6) return '05:00-05:59';
+  if(h<14) return '06:00-13:59';
+  if(h<16) return '14:00-15:59';
+  if(h<17) return '16:00-16:59';
+  return '17:00-23:59';
+}
+// WOCL (現地 02:00-05:59) と区間 [aCursor,bCursor] (UTC通算分) の重なりを判定
+function overlapsWOCL(aCursor,bCursor,offsetH){
+  if(aCursor===null||bCursor===null) return {overlap:false,minutes:0};
+  let total=0;
+  for(let d=Math.floor(aCursor/1440)-1; d<=Math.floor(bCursor/1440)+1; d++){
+    const woclStartLocal = d*1440 + 2*60;
+    const woclEndLocal = d*1440 + 6*60;
+    const woclStartUtc = woclStartLocal - offsetH*60;
+    const woclEndUtc = woclEndLocal - offsetH*60;
+    const s = Math.max(aCursor, woclStartUtc);
+    const e = Math.min(bCursor, woclEndUtc);
+    if(e>s) total += (e-s);
+  }
+  return {overlap: total>0, minutes: total};
+}
+
+/* ============ 計算本体 ============ */
+function compute(){
+  const offset = parseFloat(document.getElementById('offset').value)||0;
+
+  if(legs.length===0) return null;
+
+  // カーソル計算
+  let cursor = null;
+  const resolved = [];
+  legs.forEach((l,i)=>{
+    const stdCursor = i===0 ? advance(l.std, l.std? (()=>{const[h,m]=l.std.split(':').map(Number);return h*60+m;})():0)
+                             : advance(l.std, cursor);
+    let suCursor;
+    if(l.suOverride){
+      suCursor = i===0 ? advance(l.suOverride,(()=>{const[h,m]=l.suOverride.split(':').map(Number);return h*60+m;})())
+                        : advance(l.suOverride, cursor);
+    } else {
+      suCursor = stdCursor!==null ? stdCursor - (parseFloat(l.suLead)||0) : null;
+    }
+    const ataCursor = advance(l.ata, stdCursor!==null?stdCursor:(suCursor||0));
+    let bufferMin = 30;
+    if(l.arrAirport==='HND_NRT') bufferMin = l.customs==='YES'?BUFFER.HND_NRT_YES:BUFFER.HND_NRT_NO;
+    else if(l.arrAirport==='OSAKA_NAGOYA') bufferMin = l.customs==='YES'?BUFFER.OSAKA_NAGOYA_YES:BUFFER.OTHER_NO;
+    else bufferMin = l.customs==='YES'?BUFFER.OTHER_YES:BUFFER.OTHER_NO;
+    const businessEndCursor = ataCursor!==null ? ataCursor+bufferMin : null;
+
+    resolved.push({...l, stdCursor, suCursor, ataCursor, bufferMin, businessEndCursor});
+    cursor = businessEndCursor!==null?businessEndCursor:cursor;
+  });
+
+  const revLegs = resolved.filter(l=>l.type==='REV');
+  const landings = revLegs.length;
+  const first = resolved[0];
+  const last = resolved[resolved.length-1];
+  if(first.suCursor===null || last.ataCursor===null) return {resolved, incomplete:true};
+
+  // ギャップ（休養候補）
+  const gaps = [];
+  for(let i=0;i<resolved.length-1;i++){
+    const a = resolved[i], b = resolved[i+1];
+    if(a.businessEndCursor===null || b.suCursor===null) { gaps.push(null); continue; }
+    const dur = b.suCursor - a.businessEndCursor;
+    gaps.push({idx:i, dur});
+  }
+
+  return {resolved, gaps, landings, first, last, offset};
+}
+
+/* ============ 描画 ============ */
+function render(){
+  const wrap = document.getElementById('legs');
+  wrap.innerHTML = '';
+  legs.forEach((l,i)=>{
+    const div = document.createElement('div');
+    div.className='leg';
+    div.innerHTML = `
+      <div class="leg-head">
+        <span class="tag">区間 ${i+1}</span>
+        ${legs.length>1?`<button class="rmv" onclick="removeLeg(${l.id})">削除</button>`:''}
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>種別</label>
+          <select onchange="updateLeg(${l.id},'type',this.value)">
+            <option value="REV" ${l.type==='REV'?'selected':''}>乗務</option>
+            <option value="DH" ${l.type==='DH'?'selected':''}>DEAD HEAD</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>STD (UTC)</label>
+          <input type="time" value="${l.std}" onchange="updateLeg(${l.id},'std',this.value)">
+        </div>
+        <div class="field">
+          <label>S/Uリード(分)</label>
+          <input type="number" value="${l.suLead}" onchange="updateLeg(${l.id},'suLead',this.value)" ${l.suOverride?'disabled':''}>
+        </div>
+        <div class="field">
+          <label>S/U手動上書き(UTC・任意)</label>
+          <input type="time" value="${l.suOverride}" onchange="updateLeg(${l.id},'suOverride',this.value)">
+        </div>
+        <div class="field">
+          <label>ATA (UTC)</label>
+          <input type="time" value="${l.ata}" onchange="updateLeg(${l.id},'ata',this.value)">
+        </div>
+        <div class="field">
+          <label>到着空港</label>
+          <select onchange="updateLeg(${l.id},'arrAirport',this.value)">
+            <option value="HND_NRT" ${l.arrAirport==='HND_NRT'?'selected':''}>羽田・成田</option>
+            <option value="OSAKA_NAGOYA" ${l.arrAirport==='OSAKA_NAGOYA'?'selected':''}>大阪・名古屋</option>
+            <option value="OTHER" ${l.arrAirport==='OTHER'?'selected':''}>その他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>通関</label>
+          <select onchange="updateLeg(${l.id},'customs',this.value)">
+            <option value="NO" ${l.customs==='NO'?'selected':''}>不要</option>
+            <option value="YES" ${l.customs==='YES'?'selected':''}>要</option>
+          </select>
+        </div>
+      </div>`;
+    wrap.appendChild(div);
+
+    if(i<legs.length-1){
+      const gapDiv = document.createElement('div');
+      gapDiv.className='gap';
+      gapDiv.id=`gapinfo-${i}`;
+      gapDiv.innerHTML = `<span class="dur" id="gapdur-${i}">--:--</span> 休養
+        <label class="checkline"><input type="checkbox" id="gapnight-${i}" ${gapNightOk[i]?'checked':''} onchange="setGapNight(${i},this.checked)"> ローカルナイト含み8h睡眠可・時差2h以内</label>
+        <label class="checkline"><input type="radio" name="dedgap" id="gapuse-${i}" ${dedGapIndex===i?'checked':''} onchange="setDedGap(${i})"> 減算対象に指定</label>`;
+      wrap.appendChild(gapDiv);
+    }
+  });
+
+  if(legs.length===0){
+    addLeg({std:'09:25', suLead:100, ata:'12:50', arrAirport:'HND_NRT', customs:'NO'});
+    return;
+  }
+
+  updateResults();
+}
+
+function updateLeg(id, key, val){
+  const leg = legs.find(l=>l.id===id);
+  if(!leg) return;
+  leg[key]=val;
+  render();
+}
+function setGapNight(idx, checked){
+  gapNightOk[idx]=checked;
+  updateResults();
+}
+function setDedGap(idx){
+  dedGapIndex = idx;
+  updateResults();
+}
+
+function updateResults(){
+  const r = compute();
+  const tlBar = document.getElementById('timelineBar');
+  tlBar.innerHTML='';
+
+  if(!r){
+    document.getElementById('gaugeCaption').textContent='区間を入力してください';
+    return;
+  }
+
+  // ギャップ表示 & 減算計算
+  let totalDeduction = 0;
+  let chosenGapIdx = (dedGapIndex < r.gaps.length) ? dedGapIndex : null;
+  r.gaps.forEach((g,i)=>{
+    const durEl = document.getElementById(`gapdur-${i}`);
+    if(!g){ if(durEl) durEl.textContent='--:--'; return; }
+    if(durEl) durEl.textContent = fmtHM(g.dur);
+  });
+
+  if(chosenGapIdx!==null && r.gaps[chosenGapIdx]){
+    const g = r.gaps[chosenGapIdx];
+    const nightOk = !!gapNightOk[chosenGapIdx];
+    if(g.dur>=3*60){
+      if(g.dur>=10*60 && nightOk){
+        totalDeduction = g.dur; // 全部減算 (OM 5.8.2.2.4-2)
+      } else {
+        totalDeduction = g.dur/2; // 半分減算 (OM 5.8.2.2.4-1, 2名編成)
+      }
+    } else {
+      totalDeduction = 0; // 3h未満は減算対象外、丸ごと勤務時間に算入
+    }
+  }
+
+  // 他のギャップ（減算対象でないもの）で3h以上あれば警告フラグを立てる
+  let otherLongGap = false;
+  r.gaps.forEach((g,i)=>{
+    if(i!==chosenGapIdx && g && g.dur>=3*60) otherLongGap=true;
+  });
+
+  const totalSpan = r.last.ataCursor - r.first.suCursor;
+  const fdpAfter = totalSpan - totalDeduction;
+
+  const band = localBand(r.first.suCursor, r.offset);
+  const limits = FDP_TABLE[band][Math.min(Math.max(r.landings,2),6)] || FDP_TABLE[band][2];
+  const fdpLimit = limits[1];
+  const margin = fdpLimit - fdpAfter;
+
+  // タイムライン描画
+  const segs = [];
+  r.resolved.forEach((l,i)=>{
+    if(l.suCursor!==null && l.ataCursor!==null){
+      segs.push({type:'duty', dur: (i===r.resolved.length-1? l.ataCursor-l.suCursor : (l.businessEndCursor-l.suCursor))});
+    }
+    if(i<r.resolved.length-1 && r.gaps[i]){
+      segs.push({type: i===chosenGapIdx?'rest':'duty', dur:r.gaps[i].dur});
+    }
+  });
+  const totalDur = segs.reduce((a,s)=>a+Math.max(s.dur,0),0)||1;
+  segs.forEach(s=>{
+    const d = document.createElement('div');
+    d.className = s.type==='rest'?'tl-duty tl-rest':'tl-duty';
+    d.style.width = (Math.max(s.dur,0)/totalDur*100)+'%';
+    tlBar.appendChild(d);
+  });
+  document.getElementById('tlStart').textContent = fmtClock(r.first.suCursor);
+  document.getElementById('tlEnd').textContent = fmtClock(r.last.ataCursor);
+
+  // 結果表示
+  document.getElementById('kvSuLocal').textContent = band + ' 帯';
+  document.getElementById('kvBand').textContent = `${band} / 着陸${r.landings}回`;
+  document.getElementById('kvTotal').textContent = fmtHM(totalSpan);
+  document.getElementById('kvDeduction').textContent = '-' + fmtHM(totalDeduction);
+  document.getElementById('kvFdp').textContent = fmtHM(fdpAfter);
+  document.getElementById('kvLimit').textContent = fmtHM(fdpLimit);
+
+  const gaugeWrap = document.getElementById('gaugeWrap');
+  const big = document.getElementById('marginBig');
+  const caption = document.getElementById('gaugeCaption');
+  gaugeWrap.className='gauge';
+  const bannerOk = document.getElementById('bannerOk');
+  const bannerBad = document.getElementById('bannerBad');
+
+  if(margin>=0){
+    big.textContent = Math.round(margin);
+    gaugeWrap.classList.add(margin<45?'status-warn':'status-ok');
+    caption.textContent = margin<45 ? '余裕僅少 — 遅延に注意' : '上限内';
+    bannerOk.style.display='block';
+    bannerBad.style.display='none';
+    document.getElementById('bnMargin').textContent = fmtHM(margin) + `（${Math.round(margin)}分）`;
+  } else {
+    big.textContent = Math.round(-margin);
+    gaugeWrap.classList.add('status-bad');
+    caption.textContent = '上限超過';
+    document.getElementById('bnOver').textContent = fmtHM(-margin) + `（${Math.round(-margin)}分）`;
+
+    const restType = document.getElementById('restType');
+    const restH = parseFloat(restType.value);
+    const wocl = overlapsWOCL(r.first.suCursor, r.last.ataCursor, r.offset);
+    let woclAdd = 0;
+    if(wocl.overlap) woclAdd = wocl.minutes>=120 ? 240 : 120;
+
+    const restStart = r.last.businessEndCursor;
+    const restUntil = restStart + restH*60 + woclAdd;
+    const nextLead = parseFloat(document.getElementById('nextLead').value)||0;
+    const nextSu = restUntil; // 休養完了時刻＝そのままS/U可能時刻。次STDはさらに+lead
+    document.getElementById('bnRestUntil').textContent = fmtClock(restUntil);
+    document.getElementById('bnRestNote').textContent =
+      `連続${restH}時間` + (woclAdd?` + WOCL加算${woclAdd/60}時間`:'');
+    document.getElementById('bnNextSu').textContent = fmtClock(nextSu);
+
+    bannerOk.style.display='none';
+    bannerBad.style.display='block';
+  }
+
+  if(otherLongGap){
+    caption.textContent += '（他に3h以上の休養区間あり要確認）';
+  }
+}
+
+/* ============ 参照表描画 ============ */
+function renderRefTable(){
+  const t = document.getElementById('refTable');
+  let html = '<tr><th>飛行勤務開始(現地)</th><th>2回以下</th><th>3回</th><th>4回</th><th>5回</th><th>6回</th></tr>';
+  BAND_ORDER.forEach(b=>{
+    html += `<tr><td>${b}</td>`;
+    [2,3,4,5,6].forEach(n=>{
+      const v = FDP_TABLE[b][n];
+      html += `<td>${fmtHM(v[0])}/${fmtHM(v[1])}</td>`;
+    });
+    html += '</tr>';
+  });
+  t.innerHTML = html;
+}
+
+/* ============ init ============ */
+document.getElementById('offset').addEventListener('change', render);
+document.getElementById('restType').addEventListener('change', updateResults);
+document.getElementById('nextLead').addEventListener('change', updateResults);
+document.getElementById('fromBase').addEventListener('change', ()=>{
+  document.getElementById('restType').value = document.getElementById('fromBase').value==='yes'?'11':'11';
+});
+
+renderRefTable();
+render();
+</script>
+</body>
+</html>
