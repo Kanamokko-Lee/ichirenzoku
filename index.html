@@ -30,26 +30,24 @@
     font-size:15px;
     -webkit-font-smoothing:antialiased;
     padding:10px;
-    max-width:900px;
+    max-width:960px;
     margin:0 auto;
     padding-bottom:24px;
   }
   h1{
-    font-size:19px;
-    letter-spacing:.08em;
-    color:var(--amber);
-    text-transform:uppercase;
-    margin:0 0 1px;
-    font-weight:700;
-    display:inline-block;
+    font-size:19px;letter-spacing:.08em;color:var(--amber);text-transform:uppercase;
+    margin:0 0 1px;font-weight:700;display:inline-block;
   }
   .titlebar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
   .sub{color:var(--muted);font-size:13px;margin:0 0 8px;line-height:1.4;}
+  .btn-group{display:flex;gap:6px;}
   .tsa-btn{
     background:var(--amber);color:#1a1200;border:none;font-family:var(--mono);font-weight:700;
     font-size:14px;letter-spacing:.04em;padding:8px 16px;border-radius:6px;cursor:pointer;
   }
   .tsa-btn:active{background:#e09b2c;}
+  .tsa-btn.alt{background:var(--panel2);color:var(--amber);border:1px solid var(--amber-dim);}
+  .tsa-btn.alt:active{background:var(--line);}
   .disclaimer{
     background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--amber);
     border-radius:4px;padding:6px 9px;font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;
@@ -68,24 +66,26 @@
   .field{display:flex;flex-direction:column;gap:2px;min-width:0;}
   .field label{font-size:11px;color:var(--muted);letter-spacing:.01em;white-space:nowrap;}
   .field label .small{font-size:9.5px;color:#5f6d77;}
+  .field.compact label{font-size:9.5px;}
+  .field.compact select, .field.compact input{font-size:12px;padding:3px 5px;}
   input[type=time], input[type=number], input[type=text], select{
     background:#0d1216;border:1px solid var(--line);color:var(--text);font-family:var(--mono);
     font-size:16px;padding:5px 6px;border-radius:5px;outline:none;width:100%;
   }
-  input[type=time]{min-width:92px;}
+  input[type=time]{min-width:88px;}
   input[type=number]{width:48px;text-align:center;}
-  select{min-width:96px;}
+  select{min-width:88px;}
   input:focus, select:focus{border-color:var(--amber);}
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
   input[type=number]{-moz-appearance:textfield;}
+  input[type=time].time-hi{color:var(--green);font-weight:700;}
 
   .zsuffix{color:var(--muted);font-family:var(--mono);font-size:13px;margin-left:2px;}
 
   .checkline{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--text);}
   .checkline input{accent-color:var(--amber);width:15px;height:15px;}
 
-  /* compact stepper: input on left, +/- stacked on right */
   .stepper{display:flex;align-items:stretch;gap:3px;}
   .stp-stack{display:flex;flex-direction:column;gap:2px;}
   .stp-btn{
@@ -99,10 +99,14 @@
   .lead-row .plus{color:var(--muted);font-family:var(--mono);font-size:15px;padding:0 1px;}
   .lead-row .suffix{color:var(--muted);font-size:12px;margin-left:3px;}
 
-  .flightno{width:84px !important;font-size:14px !important;padding:4px 6px !important;}
+  .flightno{width:82px !important;font-size:14px !important;padding:4px 6px !important;}
 
-  /* legs */
-  .leg{border:1px solid var(--line);border-radius:6px;padding:8px;margin-bottom:7px;background:var(--panel2);}
+  /* legs: side by side */
+  #legs{display:flex;flex-wrap:wrap;gap:8px;}
+  .leg{
+    border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--panel2);
+    flex:1 1 300px;min-width:270px;
+  }
   .leg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
   .leg-head .tag{font-family:var(--mono);font-size:13px;color:var(--amber);letter-spacing:.04em;}
   .rmv{background:none;border:1px solid var(--line);color:var(--muted);font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;}
@@ -118,10 +122,13 @@
   .su-display{display:flex;flex-direction:column;gap:2px;min-width:74px;}
   .su-display .su-label{font-size:11px;color:var(--muted);}
   .su-display .su-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green);}
-  .row2-label{font-size:11px;color:var(--muted);margin-bottom:5px;}
   .dash{color:var(--muted);margin-bottom:5px;}
 
-  .gap{border:1px solid var(--line);border-radius:6px;background:#0d1216;padding:7px 8px;margin:-2px 0 7px;font-size:12.5px;color:var(--muted);}
+  .gap{
+    flex:1 1 100%;
+    border:1px solid var(--line);border-radius:6px;background:#0d1216;padding:7px 8px;
+    font-size:12.5px;color:var(--muted);
+  }
   .gap-line{margin-bottom:4px;}
   .gap-line b{font-family:var(--mono);color:var(--text);font-weight:600;}
   .gap .dur{font-family:var(--mono);color:var(--green);font-size:15px;}
@@ -177,7 +184,10 @@
     <h1>一連続勤務チェッカー</h1>
     <p class="sub">2名編成（機長／副操縦士）専用 &middot; OM 5.8 準拠参照ツール</p>
   </div>
-  <button class="tsa-btn" onclick="fillTSA()" title="検証用サンプル(JAL99/JAL96)を入力">TSA</button>
+  <div class="btn-group">
+    <button class="tsa-btn" onclick="fillTSA()" title="検証用サンプル(JAL99/JAL96)を入力">TSA</button>
+    <button class="tsa-btn alt" onclick="fillTPE()" title="検証用サンプル(JAL809/JAL802)を入力">TPE</button>
+  </div>
 </div>
 
 <div class="disclaimer">
@@ -246,10 +256,10 @@
       </div>
 
       <div class="banner ok" id="bannerOk" style="display:none;">
-        現在の予定で <b id="bnMargin">--</b> の余裕があります。
+        現在の予定で <b id="bnMargin">--</b> の余裕があります。一連続勤務として成立します。
       </div>
       <div class="banner bad" id="bannerBad" style="display:none;">
-        上限を <b id="bnOver">--</b> 超過しています。
+        <b>一連続勤務が成立しません。</b>上限を <b id="bnOver">--</b> 超過しています。
       </div>
     </div>
 
@@ -314,8 +324,14 @@ function removeLeg(id){
 }
 function fillTSA(){
   while(legs.length<2) addLeg();
-  legs[0].std='09:25'; legs[0].sta='12:50'; legs[0].flightNo='JAL99';
-  legs[1].std='01:40'; legs[1].sta='04:50'; legs[1].flightNo='JAL96';
+  legs[0].std='09:25'; legs[0].sta='12:50'; legs[0].flightNo='JAL99'; legs[0].suOverride='';
+  legs[1].std='01:40'; legs[1].sta='04:50'; legs[1].flightNo='JAL96'; legs[1].suOverride='';
+  render();
+}
+function fillTPE(){
+  while(legs.length<2) addLeg();
+  legs[0].std='09:05'; legs[0].sta='13:10'; legs[0].flightNo='JAL809'; legs[0].suOverride='07:30';
+  legs[1].std='02:35'; legs[1].sta='05:40'; legs[1].flightNo='JAL802'; legs[1].suOverride='01:10';
   render();
 }
 
@@ -370,13 +386,15 @@ function advance(hhmm, prevCursor){
   if(cand < prevCursor) cand += 1440;
   return cand;
 }
+// 期間(分)表示: "H+MM" 形式
 function fmtHM(mins){
-  if(mins===null||mins===undefined||isNaN(mins)) return '--:--';
+  if(mins===null||mins===undefined||isNaN(mins)) return '--+--';
   const sign = mins<0?'-':'';
   mins = Math.abs(Math.round(mins));
   const h = Math.floor(mins/60), m = mins%60;
-  return `${sign}${h}:${String(m).padStart(2,'0')}`;
+  return `${sign}${h}+${String(m).padStart(2,'0')}`;
 }
+// 時刻(UTC通算分)表示: "HH:MMz" 形式
 function fmtClock(cursorMin){
   if(cursorMin===null||cursorMin===undefined||isNaN(cursorMin)) return '--:--z';
   const m = ((cursorMin%1440)+1440)%1440;
@@ -513,7 +531,7 @@ function render(){
             <span class="suffix">前</span>
           </div>
         </div>
-        <div class="field">
+        <div class="field compact">
           <label>S/U手動上書き(任意)</label>
           <input type="time" value="${l.suOverride}" onchange="updateLeg(${l.id},'suOverride',this.value)">
         </div>
@@ -527,27 +545,27 @@ function render(){
         <div class="field">
           <label>STD (UTC)</label>
           <div style="display:flex;align-items:center;">
-            <input type="time" value="${l.std}" onchange="updateLeg(${l.id},'std',this.value)"><span class="zsuffix">z</span>
+            <input class="time-hi" type="time" value="${l.std}" onchange="updateLeg(${l.id},'std',this.value)"><span class="zsuffix">z</span>
           </div>
         </div>
         <span class="dash">-</span>
         <div class="field">
           <label>STA (UTC)</label>
           <div style="display:flex;align-items:center;">
-            <input type="time" value="${l.sta}" onchange="updateLeg(${l.id},'sta',this.value)"><span class="zsuffix">z</span>
+            <input class="time-hi" type="time" value="${l.sta}" onchange="updateLeg(${l.id},'sta',this.value)"><span class="zsuffix">z</span>
           </div>
         </div>
       </div>
 
       <div class="leg-row">
-        <div class="field">
+        <div class="field compact">
           <label>種別</label>
           <select onchange="updateLeg(${l.id},'type',this.value)">
             <option value="REV" ${l.type==='REV'?'selected':''}>乗務</option>
             <option value="DH" ${l.type==='DH'?'selected':''}>DEAD HEAD</option>
           </select>
         </div>
-        <div class="field">
+        <div class="field compact">
           <label>到着空港</label>
           <select onchange="updateLeg(${l.id},'arrAirport',this.value)">
             <option value="HND_NRT" ${l.arrAirport==='HND_NRT'?'selected':''}>羽田・成田</option>
@@ -555,7 +573,7 @@ function render(){
             <option value="OTHER" ${l.arrAirport==='OTHER'?'selected':''}>その他</option>
           </select>
         </div>
-        <div class="field">
+        <div class="field compact">
           <label>通関</label>
           <select onchange="updateLeg(${l.id},'customs',this.value)">
             <option value="YES" ${l.customs==='YES'?'selected':''}>要</option>
@@ -574,7 +592,7 @@ function render(){
       gapDiv.innerHTML = `
         <div class="gap-line">休養開始: <b id="gapstart-${i}">--:--</b> 〜 休養終了: <b id="gapend-${i}">--:--</b></div>
         <div class="gap-line gap-bottom">
-          休養時間: <span class="dur" id="gapdur-${i}">--:--</span>
+          休養時間: <span class="dur" id="gapdur-${i}">--+--</span>
           <label class="checkline"><input type="radio" name="dedgap" id="gapuse-${i}" ${dedGapIndex===i?'checked':''} onchange="setDedGap(${i})"> 減算対象</label>
         </div>
         <div class="gap-elig">
@@ -609,7 +627,6 @@ function updateResults(){
   if(!r || r.incomplete){
     document.getElementById('gaugeCaption').textContent='STD・STAを入力してください';
     document.getElementById('marginBig').textContent='--';
-    // S/U表示だけは可能な範囲で更新
     if(r && r.resolved){
       r.resolved.forEach(l=>{
         const el = document.getElementById(`suval-${l.id}`);
@@ -632,7 +649,7 @@ function updateResults(){
     const startEl = document.getElementById(`gapstart-${i}`);
     const endEl = document.getElementById(`gapend-${i}`);
     const badgeEl = document.getElementById(`gapbadge-${i}`);
-    if(!g){ if(durEl) durEl.textContent='--:--'; return; }
+    if(!g){ if(durEl) durEl.textContent='--+--'; return; }
     if(durEl) durEl.textContent = fmtHM(g.dur);
     if(startEl) startEl.textContent = fmtClock(g.start);
     if(endEl) endEl.textContent = fmtClock(g.end);
@@ -693,7 +710,7 @@ function updateResults(){
   } else {
     big.textContent = Math.round(-margin);
     gaugeWrap.classList.add('status-bad');
-    caption.textContent = '上限超過';
+    caption.textContent = '上限超過 — 一連続勤務 不成立';
     document.getElementById('bnOver').textContent = fmtHM(-margin) + `（${Math.round(-margin)}分）`;
     bannerOk.style.display='none';
     bannerBad.style.display='block';
@@ -709,7 +726,7 @@ function updateResults(){
   const restUntil = restStart + restH*60 + woclAdd;
   const nextLead = parseFloat(document.getElementById('nextLead').value)||0;
   document.getElementById('reqRestBase').textContent = restH;
-  document.getElementById('reqRestWocl').textContent = woclAdd?fmtHM(woclAdd):'0:00';
+  document.getElementById('reqRestWocl').textContent = woclAdd?fmtHM(woclAdd):'0+00';
   document.getElementById('reqRestTotal').textContent = fmtHM(restH*60+woclAdd);
   document.getElementById('reqRestUntil').textContent = fmtClock(restUntil);
   document.getElementById('reqNextSu').textContent = fmtClock(restUntil);
@@ -737,6 +754,7 @@ document.getElementById('offset').addEventListener('change', render);
 renderRefTable();
 addLeg({arrAirport:'OTHER'});
 addLeg({arrAirport:'HND_NRT'});
+fillTSA();
 </script>
 </body>
 </html>
