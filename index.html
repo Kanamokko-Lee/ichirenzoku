@@ -32,7 +32,7 @@
     padding:10px;
     max-width:900px;
     margin:0 auto;
-    padding-bottom:30px;
+    padding-bottom:24px;
   }
   h1{
     font-size:19px;
@@ -43,253 +43,124 @@
     font-weight:700;
     display:inline-block;
   }
-  .titlebar{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:8px;
-    flex-wrap:wrap;
-  }
-  .sub{
-    color:var(--muted);
-    font-size:13px;
-    margin:0 0 8px;
-    line-height:1.4;
-  }
+  .titlebar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 8px;line-height:1.4;}
   .tsa-btn{
-    background:var(--amber);
-    color:#1a1200;
-    border:none;
-    font-family:var(--mono);
-    font-weight:700;
-    font-size:14px;
-    letter-spacing:.04em;
-    padding:8px 16px;
-    border-radius:6px;
-    cursor:pointer;
+    background:var(--amber);color:#1a1200;border:none;font-family:var(--mono);font-weight:700;
+    font-size:14px;letter-spacing:.04em;padding:8px 16px;border-radius:6px;cursor:pointer;
   }
   .tsa-btn:active{background:#e09b2c;}
   .disclaimer{
-    background:var(--panel2);
-    border:1px solid var(--line);
-    border-left:3px solid var(--amber);
-    border-radius:4px;
-    padding:6px 9px;
-    font-size:12px;
-    color:var(--muted);
-    line-height:1.5;
-    margin-bottom:10px;
+    background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--amber);
+    border-radius:4px;padding:6px 9px;font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;
   }
   section{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:8px;
-    padding:9px 10px;
-    margin-bottom:8px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:9px 10px;margin-bottom:8px;
   }
   .sec-title{
-    font-size:13px;
-    letter-spacing:.08em;
-    text-transform:uppercase;
-    color:var(--muted);
-    margin:0 0 7px;
-    display:flex;
-    align-items:center;
-    gap:5px;
+    font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+    margin:0 0 7px;display:flex;align-items:center;gap:5px;
   }
-  .sec-title .num{
-    color:var(--amber);
-    font-family:var(--mono);
-  }
-  .note{
-    font-size:11.5px;
-    color:var(--muted);
-    line-height:1.5;
-    margin:4px 0 0;
-  }
-  .row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:7px;
-    align-items:flex-end;
-  }
-  .field{
-    display:flex;
-    flex-direction:column;
-    gap:2px;
-    min-width:0;
-  }
-  .field label{
-    font-size:11px;
-    color:var(--muted);
-    letter-spacing:.01em;
-    white-space:nowrap;
-  }
-  .field label .small{
-    font-size:9.5px;
-    color:#5f6d77;
-  }
+  .sec-title .num{color:var(--amber);font-family:var(--mono);}
+  .note{font-size:11.5px;color:var(--muted);line-height:1.5;margin:4px 0 0;}
+  .row{display:flex;flex-wrap:wrap;gap:7px;align-items:flex-end;}
+  .field{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .field label{font-size:11px;color:var(--muted);letter-spacing:.01em;white-space:nowrap;}
+  .field label .small{font-size:9.5px;color:#5f6d77;}
   input[type=time], input[type=number], input[type=text], select{
-    background:#0d1216;
-    border:1px solid var(--line);
-    color:var(--text);
-    font-family:var(--mono);
-    font-size:16px;
-    padding:5px 6px;
-    border-radius:5px;
-    outline:none;
-    width:100%;
+    background:#0d1216;border:1px solid var(--line);color:var(--text);font-family:var(--mono);
+    font-size:16px;padding:5px 6px;border-radius:5px;outline:none;width:100%;
   }
-  input[type=time]{min-width:100px;}
-  input[type=number]{width:56px;text-align:center;}
-  select{min-width:100px;}
+  input[type=time]{min-width:92px;}
+  input[type=number]{width:48px;text-align:center;}
+  select{min-width:96px;}
   input:focus, select:focus{border-color:var(--amber);}
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
   input[type=number]{-moz-appearance:textfield;}
 
-  .checkline{
-    display:flex;
-    align-items:center;
-    gap:5px;
-    font-size:13px;
-    color:var(--text);
-  }
-  .checkline input{accent-color:var(--amber);width:16px;height:16px;}
+  .zsuffix{color:var(--muted);font-family:var(--mono);font-size:13px;margin-left:2px;}
 
-  /* stepper */
-  .stepper{display:flex;align-items:stretch;gap:4px;}
+  .checkline{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--text);}
+  .checkline input{accent-color:var(--amber);width:15px;height:15px;}
+
+  /* compact stepper: input on left, +/- stacked on right */
+  .stepper{display:flex;align-items:stretch;gap:3px;}
+  .stp-stack{display:flex;flex-direction:column;gap:2px;}
   .stp-btn{
-    width:34px;height:34px;flex:0 0 auto;
-    background:var(--amber);color:#1a1200;border:none;border-radius:6px;
-    font-size:19px;font-weight:800;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;line-height:1;user-select:none;
+    width:22px;height:15px;background:var(--panel2);border:1px solid var(--line);
+    color:var(--amber);font-size:10px;font-weight:700;border-radius:3px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;line-height:1;padding:0;
   }
-  .stp-btn:active{background:#e09b2c;}
-  .stp-btn.sm{width:26px;height:26px;font-size:14px;border-radius:5px;}
+  .stp-btn:active{background:var(--line);}
+  .stp-btn:disabled{opacity:.35;cursor:default;}
   .lead-row{display:flex;align-items:center;gap:3px;}
-  .lead-row .plus{color:var(--muted);font-family:var(--mono);font-size:16px;padding:0 1px;}
+  .lead-row .plus{color:var(--muted);font-family:var(--mono);font-size:15px;padding:0 1px;}
   .lead-row .suffix{color:var(--muted);font-size:12px;margin-left:3px;}
 
-  .flightno{
-    width:90px !important;
-    font-size:14px !important;
-    padding:4px 6px !important;
-  }
+  .flightno{width:84px !important;font-size:14px !important;padding:4px 6px !important;}
 
   /* legs */
-  .leg{
-    border:1px solid var(--line);
-    border-radius:6px;
-    padding:8px;
-    margin-bottom:7px;
-    background:var(--panel2);
-    position:relative;
-  }
-  .leg-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:6px;
-    gap:8px;
-  }
-  .leg-head .left{display:flex;align-items:center;gap:8px;}
-  .leg-head .tag{
-    font-family:var(--mono);
-    font-size:13px;
-    color:var(--amber);
-    letter-spacing:.04em;
-  }
-  .rmv{
-    background:none;
-    border:1px solid var(--line);
-    color:var(--muted);
-    font-size:11px;
-    padding:3px 8px;
-    border-radius:4px;
-    cursor:pointer;
-  }
+  .leg{border:1px solid var(--line);border-radius:6px;padding:8px;margin-bottom:7px;background:var(--panel2);}
+  .leg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .leg-head .tag{font-family:var(--mono);font-size:13px;color:var(--amber);letter-spacing:.04em;}
+  .rmv{background:none;border:1px solid var(--line);color:var(--muted);font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;}
   .rmv:hover{border-color:var(--red);color:var(--red);}
   .add-leg{
-    width:100%;
-    padding:8px;
-    background:none;
-    border:1px dashed var(--line);
-    color:var(--muted);
-    border-radius:6px;
-    font-size:13px;
-    cursor:pointer;
-    margin-top:2px;
+    width:100%;padding:8px;background:none;border:1px dashed var(--line);color:var(--muted);
+    border-radius:6px;font-size:13px;cursor:pointer;margin-top:2px;
   }
   .add-leg:hover{border-color:var(--amber);color:var(--amber);}
 
-  .gap{
-    border:1px solid var(--line);
-    border-radius:6px;
-    background:#0d1216;
-    padding:7px 8px;
-    margin:-2px 0 7px;
-    font-size:12.5px;
-    color:var(--muted);
-  }
-  .gap-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:5px;}
-  .gap .dur{font-family:var(--mono);color:var(--green);font-size:16px;}
-  .gap-times{font-family:var(--mono);color:var(--text);font-size:12.5px;}
-  .gap-elig{
-    display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px;
-  }
-  .badge{
-    font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:10px;
-    border:1px solid var(--line);
-  }
+  .leg-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:5px 0;border-top:1px dotted var(--line);}
+  .leg-row:first-of-type{border-top:none;padding-top:0;}
+  .su-display{display:flex;flex-direction:column;gap:2px;min-width:74px;}
+  .su-display .su-label{font-size:11px;color:var(--muted);}
+  .su-display .su-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green);}
+  .row2-label{font-size:11px;color:var(--muted);margin-bottom:5px;}
+  .dash{color:var(--muted);margin-bottom:5px;}
+
+  .gap{border:1px solid var(--line);border-radius:6px;background:#0d1216;padding:7px 8px;margin:-2px 0 7px;font-size:12.5px;color:var(--muted);}
+  .gap-line{margin-bottom:4px;}
+  .gap-line b{font-family:var(--mono);color:var(--text);font-weight:600;}
+  .gap .dur{font-family:var(--mono);color:var(--green);font-size:15px;}
+  .gap-bottom{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .gap-elig{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:5px;}
+  .badge{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:10px;border:1px solid var(--line);}
   .badge.ok{color:var(--green);border-color:var(--green-dim);background:#0f1f18;}
   .badge.no{color:var(--red);border-color:var(--red-dim);background:#210f0f;}
 
-  /* timeline */
-  .timeline{
-    display:flex;
-    height:24px;
-    border-radius:4px;
-    overflow:hidden;
-    border:1px solid var(--line);
-    margin:6px 0 3px;
-  }
-  .tl-duty{background:var(--amber-dim);}
-  .tl-rest{background:var(--green-dim);}
-  .tl-label{
-    font-size:11px;color:var(--muted);
-    display:flex;justify-content:space-between;font-family:var(--mono);
-  }
-
   /* results */
-  .gauge{
-    display:flex;align-items:baseline;gap:8px;justify-content:center;padding:8px 0 2px;
+  .results-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;}
+  .results-left{flex:1 1 260px;min-width:230px;}
+  .results-right{
+    flex:1 1 190px;min-width:170px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:6px;padding:8px;
   }
-  .gauge .big{font-family:var(--mono);font-size:42px;font-weight:700;letter-spacing:-.01em;}
-  .gauge .unit{font-size:14px;color:var(--muted);}
+  .gauge{display:flex;align-items:baseline;gap:8px;justify-content:center;padding:4px 0 2px;}
+  .gauge .big{font-family:var(--mono);font-size:38px;font-weight:700;letter-spacing:-.01em;}
+  .gauge .unit{font-size:13px;color:var(--muted);}
   .status-ok .big{color:var(--green);}
   .status-warn .big{color:var(--amber);}
   .status-bad .big{color:var(--red);}
-  .gauge-caption{text-align:center;font-size:13px;color:var(--muted);margin-bottom:6px;}
-  .kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:13.5px;}
-  .kv{display:flex;justify-content:space-between;gap:6px;border-bottom:1px dotted var(--line);padding:3px 0;}
+  .gauge-caption{text-align:center;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
+  .kv-grid{display:grid;grid-template-columns:1fr auto;gap:3px 8px;font-size:13px;}
+  .kv{display:flex;justify-content:space-between;gap:6px;border-bottom:1px dotted var(--line);padding:2px 0;grid-column:1/-1;}
   .kv .k{color:var(--muted);}
   .kv .v{font-family:var(--mono);color:var(--text);text-align:right;}
   .kv .v.hi{color:var(--amber);}
-  .kv.wide{grid-column:1/-1;}
 
-  .banner{border-radius:6px;padding:8px 10px;font-size:13.5px;line-height:1.55;margin-top:8px;}
+  .banner{border-radius:6px;padding:7px 9px;font-size:12.5px;line-height:1.5;margin-top:7px;}
   .banner.ok{background:var(--green-dim);color:#c9ffe4;border:1px solid #2a7a54;}
   .banner.bad{background:var(--red-dim);color:#ffd6d6;border:1px solid #8a2c2c;}
   .banner b{font-family:var(--mono);}
 
-  .stat-row{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;}
-  .stat{
-    flex:1 1 140px;background:#0d1216;border:1px solid var(--amber-dim);border-radius:8px;
-    padding:8px;text-align:center;
-  }
-  .stat .stat-label{font-size:11px;color:var(--muted);margin-bottom:3px;line-height:1.3;}
-  .stat .stat-val{font-family:var(--mono);font-size:21px;font-weight:800;color:var(--amber);}
+  .rr-title{font-size:11.5px;color:var(--muted);line-height:1.4;margin:0 0 6px;}
+  .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .stat{background:#0d1216;border:1px solid var(--amber-dim);border-radius:7px;padding:6px;text-align:center;}
+  .stat .stat-label{font-size:10px;color:var(--muted);margin-bottom:2px;line-height:1.3;}
+  .stat .stat-val{font-family:var(--mono);font-size:16px;font-weight:800;color:var(--amber);}
 
   details{margin-top:8px;}
   summary{font-size:12.5px;color:var(--muted);cursor:pointer;letter-spacing:.03em;}
@@ -320,9 +191,11 @@
     <div class="field">
       <label>時差 (UTC+ (h))</label>
       <div class="stepper">
-        <button class="stp-btn" onclick="stepGlobalVal('offset',-0.5,-12,14,render)">−</button>
         <input type="number" id="offset" value="9" step="0.5">
-        <button class="stp-btn" onclick="stepGlobalVal('offset',0.5,-12,14,render)">＋</button>
+        <div class="stp-stack">
+          <button class="stp-btn" onclick="stepGlobalVal('offset',0.5,-12,14,render)">＋</button>
+          <button class="stp-btn" onclick="stepGlobalVal('offset',-0.5,-12,14,render)">−</button>
+        </div>
       </div>
     </div>
     <div class="field">
@@ -335,9 +208,11 @@
     <div class="field">
       <label>次便出頭リード(分)</label>
       <div class="stepper">
-        <button class="stp-btn" onclick="stepGlobalVal('nextLead',-5,0,300,updateResults)">−</button>
         <input type="number" id="nextLead" value="90">
-        <button class="stp-btn" onclick="stepGlobalVal('nextLead',5,0,300,updateResults)">＋</button>
+        <div class="stp-stack">
+          <button class="stp-btn" onclick="stepGlobalVal('nextLead',5,0,300,updateResults)">＋</button>
+          <button class="stp-btn" onclick="stepGlobalVal('nextLead',-5,0,300,updateResults)">−</button>
+        </div>
       </div>
     </div>
   </div>
@@ -351,43 +226,42 @@
   <button class="add-leg" onclick="addLeg()">＋ 区間を追加</button>
 </section>
 
-<!-- ==== 3. タイムライン ==== -->
+<!-- ==== 3. 判定結果 ==== -->
 <section>
-  <p class="sec-title"><span class="num">03</span> タイムライン</p>
-  <div class="timeline" id="timelineBar"></div>
-  <div class="tl-label"><span id="tlStart">--:--z</span><span id="tlEnd">--:--z</span></div>
-</section>
+  <p class="sec-title"><span class="num">03</span> 判定結果</p>
+  <div class="results-row">
+    <div class="results-left">
+      <div class="gauge" id="gaugeWrap">
+        <span class="big" id="marginBig">--</span><span class="unit">分の余裕</span>
+      </div>
+      <p class="gauge-caption" id="gaugeCaption">区間を入力してください</p>
 
-<!-- ==== 4. 判定結果 ==== -->
-<section>
-  <p class="sec-title"><span class="num">04</span> 判定結果</p>
-  <div class="gauge" id="gaugeWrap">
-    <span class="big" id="marginBig">--</span><span class="unit">分の余裕</span>
-  </div>
-  <p class="gauge-caption" id="gaugeCaption">区間を入力してください</p>
+      <div class="kv-grid">
+        <div class="kv"><span class="k">飛行勤務開始時刻</span><span class="v hi" id="kvSuTime">--</span></div>
+        <div class="kv"><span class="k">適用時間帯 / 着陸回数</span><span class="v" id="kvBand">--</span></div>
+        <div class="kv"><span class="k">一連続勤務時間（減算前）</span><span class="v" id="kvTotal">--</span></div>
+        <div class="kv"><span class="k">休養減算</span><span class="v" id="kvDeduction">--</span></div>
+        <div class="kv"><span class="k">飛行勤務時間（減算後）</span><span class="v hi" id="kvFdp">--</span></div>
+        <div class="kv"><span class="k">飛行勤務時間 上限</span><span class="v hi" id="kvLimit">--</span></div>
+      </div>
 
-  <div class="kv-grid">
-    <div class="kv wide"><span class="k">飛行勤務開始時刻</span><span class="v hi" id="kvSuTime">--</span></div>
-    <div class="kv"><span class="k">適用時間帯 / 着陸回数</span><span class="v" id="kvBand">--</span></div>
-    <div class="kv"><span class="k">一連続勤務時間（減算前）</span><span class="v" id="kvTotal">--</span></div>
-    <div class="kv"><span class="k">休養減算</span><span class="v" id="kvDeduction">--</span></div>
-    <div class="kv"><span class="k">飛行勤務時間（減算後）</span><span class="v hi" id="kvFdp">--</span></div>
-    <div class="kv"><span class="k">飛行勤務時間 上限</span><span class="v hi" id="kvLimit">--</span></div>
-  </div>
+      <div class="banner ok" id="bannerOk" style="display:none;">
+        現在の予定で <b id="bnMargin">--</b> の余裕があります。
+      </div>
+      <div class="banner bad" id="bannerBad" style="display:none;">
+        上限を <b id="bnOver">--</b> 超過しています。
+      </div>
+    </div>
 
-  <div class="banner ok" id="bannerOk" style="display:none;">
-    現在の予定で <b id="bnMargin">--</b> の余裕があります。最終区間のSTAがこれ以上遅れなければ上限内です。
-  </div>
-  <div class="banner bad" id="bannerBad" style="display:none;">
-    一連続勤務の上限を <b id="bnOver">--</b> 超過しています。
-  </div>
-
-  <p class="note" style="margin-top:10px;">上限を過ぎた場合に必要な休養（連続<span id="reqRestBase">--</span>時間 + WOCL加算<span id="reqRestWocl">--</span>）：</p>
-  <div class="stat-row">
-    <div class="stat"><div class="stat-label">必要休養（合計）</div><div class="stat-val" id="reqRestTotal">--</div></div>
-    <div class="stat"><div class="stat-label">休養完了</div><div class="stat-val" id="reqRestUntil">--</div></div>
-    <div class="stat"><div class="stat-label">次便 出頭可能</div><div class="stat-val" id="reqNextSu">--</div></div>
-    <div class="stat"><div class="stat-label">次便 STD目安</div><div class="stat-val" id="reqNextStd">--</div></div>
+    <div class="results-right">
+      <p class="rr-title">上限超過時に必要な休養<br>（連続<span id="reqRestBase">--</span>h + WOCL加算<span id="reqRestWocl">--</span>）</p>
+      <div class="stat-row">
+        <div class="stat"><div class="stat-label">必要休養合計</div><div class="stat-val" id="reqRestTotal">--</div></div>
+        <div class="stat"><div class="stat-label">休養完了</div><div class="stat-val" id="reqRestUntil">--</div></div>
+        <div class="stat"><div class="stat-label">次便 出頭可</div><div class="stat-val" id="reqNextSu">--</div></div>
+        <div class="stat"><div class="stat-label">次便 STD目安</div><div class="stat-val" id="reqNextStd">--</div></div>
+      </div>
+    </div>
   </div>
 
   <details>
@@ -416,9 +290,9 @@ const BUFFER = {
 
 let legIdSeq = 0;
 let legs = [];
-let dedGapIndex = 0;      // 減算対象に指定するギャップの index
-let gapRestOffset = {};   // gap index -> 休養地UTCオフセット（未設定なら基本設定のオフセットを使用）
-let gapForceHalf = {};    // gap index -> 自動判定を無視して半分減算に固定するか
+let dedGapIndex = 0;
+let gapRestOffset = {};
+let gapForceHalf = {};
 
 function newLeg(preset){
   legIdSeq++;
@@ -527,7 +401,6 @@ function localBand(cursorMin, offsetH){
   if(h<17) return '16:00-16:59';
   return '17:00-23:59';
 }
-// 区間[aCursor,bCursor](UTC通算分)とWOCL(現地02:00-05:59)の重なり(分)
 function overlapsWOCL(aCursor,bCursor,offsetH){
   if(aCursor===null||bCursor===null) return {overlap:false,minutes:0};
   let total=0;
@@ -539,7 +412,6 @@ function overlapsWOCL(aCursor,bCursor,offsetH){
   }
   return {overlap: total>0, minutes: total};
 }
-// 区間[aCursor,bCursor]とローカルナイト(現地22:00-08:00)の最大連続重なり(分)
 function localNightMaxCoverage(aCursor,bCursor,offsetH){
   if(aCursor===null||bCursor===null) return 0;
   let maxOv = 0;
@@ -611,34 +483,33 @@ function render(){
     div.className='leg';
     div.innerHTML = `
       <div class="leg-head">
-        <div class="left">
-          <span class="tag">区間 ${i+1}</span>
-          <input class="flightno" type="text" placeholder="便名" value="${l.flightNo||''}" onchange="updateLeg(${l.id},'flightNo',this.value)">
-        </div>
+        <span class="tag">区間 ${i+1}</span>
         ${legs.length>1?`<button class="rmv" onclick="removeLeg(${l.id})">削除</button>`:''}
       </div>
-      <div class="row">
-        <div class="field">
-          <label>種別</label>
-          <select onchange="updateLeg(${l.id},'type',this.value)">
-            <option value="REV" ${l.type==='REV'?'selected':''}>乗務</option>
-            <option value="DH" ${l.type==='DH'?'selected':''}>DEAD HEAD</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>STD (UTC)</label>
-          <input type="time" value="${l.std}" onchange="updateLeg(${l.id},'std',this.value)">
+
+      <div class="leg-row">
+        <div class="su-display">
+          <span class="su-label">S/U</span>
+          <span class="su-val" id="suval-${l.id}">--:--</span>
         </div>
         <div class="field">
           <label>出頭時刻 <span class="small">(ADM 3.1.2.10)</span></label>
           <div class="lead-row">
-            <button class="stp-btn sm" ${l.suOverride?'disabled':''} onclick="stepLegVal(${l.id},'suLeadH',-1,0,9)">−</button>
-            <input type="number" min="0" max="9" step="1" value="${l.suLeadH}" ${l.suOverride?'disabled':''} onchange="updateLeg(${l.id},'suLeadH',this.value)">
-            <button class="stp-btn sm" ${l.suOverride?'disabled':''} onclick="stepLegVal(${l.id},'suLeadH',1,0,9)">＋</button>
+            <div class="stepper">
+              <input type="number" min="0" max="9" step="1" value="${l.suLeadH}" ${l.suOverride?'disabled':''} onchange="updateLeg(${l.id},'suLeadH',this.value)">
+              <div class="stp-stack">
+                <button class="stp-btn" ${l.suOverride?'disabled':''} onclick="stepLegVal(${l.id},'suLeadH',1,0,9)">＋</button>
+                <button class="stp-btn" ${l.suOverride?'disabled':''} onclick="stepLegVal(${l.id},'suLeadH',-1,0,9)">−</button>
+              </div>
+            </div>
             <span class="plus">+</span>
-            <button class="stp-btn sm" ${l.suOverride?'disabled':''} onclick="stepLegVal(${l.id},'suLeadM',-5,0,55)">−</button>
-            <input type="number" min="0" max="55" step="5" value="${l.suLeadM}" ${l.suOverride?'disabled':''} onchange="updateLeg(${l.id},'suLeadM',this.value)">
-            <button class="stp-btn sm" ${l.suOverride?'disabled':''} onclick="stepLegVal(${l.id},'suLeadM',5,0,55)">＋</button>
+            <div class="stepper">
+              <input type="number" min="0" max="55" step="5" value="${l.suLeadM}" ${l.suOverride?'disabled':''} onchange="updateLeg(${l.id},'suLeadM',this.value)">
+              <div class="stp-stack">
+                <button class="stp-btn" ${l.suOverride?'disabled':''} onclick="stepLegVal(${l.id},'suLeadM',5,0,55)">＋</button>
+                <button class="stp-btn" ${l.suOverride?'disabled':''} onclick="stepLegVal(${l.id},'suLeadM',-5,0,55)">−</button>
+              </div>
+            </div>
             <span class="suffix">前</span>
           </div>
         </div>
@@ -646,9 +517,35 @@ function render(){
           <label>S/U手動上書き(任意)</label>
           <input type="time" value="${l.suOverride}" onchange="updateLeg(${l.id},'suOverride',this.value)">
         </div>
+      </div>
+
+      <div class="leg-row">
+        <div class="field">
+          <label>便名</label>
+          <input class="flightno" type="text" placeholder="便名" value="${l.flightNo||''}" onchange="updateLeg(${l.id},'flightNo',this.value)">
+        </div>
+        <div class="field">
+          <label>STD (UTC)</label>
+          <div style="display:flex;align-items:center;">
+            <input type="time" value="${l.std}" onchange="updateLeg(${l.id},'std',this.value)"><span class="zsuffix">z</span>
+          </div>
+        </div>
+        <span class="dash">-</span>
         <div class="field">
           <label>STA (UTC)</label>
-          <input type="time" value="${l.sta}" onchange="updateLeg(${l.id},'sta',this.value)">
+          <div style="display:flex;align-items:center;">
+            <input type="time" value="${l.sta}" onchange="updateLeg(${l.id},'sta',this.value)"><span class="zsuffix">z</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="leg-row">
+        <div class="field">
+          <label>種別</label>
+          <select onchange="updateLeg(${l.id},'type',this.value)">
+            <option value="REV" ${l.type==='REV'?'selected':''}>乗務</option>
+            <option value="DH" ${l.type==='DH'?'selected':''}>DEAD HEAD</option>
+          </select>
         </div>
         <div class="field">
           <label>到着空港</label>
@@ -675,20 +572,22 @@ function render(){
       const globalOff = parseFloat(document.getElementById('offset')?.value)||9;
       const offVal = gapRestOffset[i]!==undefined?gapRestOffset[i]:globalOff;
       gapDiv.innerHTML = `
-        <div class="gap-top">
-          <span class="dur" id="gapdur-${i}">--:--</span>
-          <span class="gap-times" id="gaptimes-${i}">--:-- 〜 --:--</span>
+        <div class="gap-line">休養開始: <b id="gapstart-${i}">--:--</b> 〜 休養終了: <b id="gapend-${i}">--:--</b></div>
+        <div class="gap-line gap-bottom">
+          休養時間: <span class="dur" id="gapdur-${i}">--:--</span>
           <label class="checkline"><input type="radio" name="dedgap" id="gapuse-${i}" ${dedGapIndex===i?'checked':''} onchange="setDedGap(${i})"> 減算対象</label>
         </div>
         <div class="gap-elig">
           <span class="badge" id="gapbadge-${i}">--</span>
           <span>休養地UTCオフセット</span>
           <div class="stepper">
-            <button class="stp-btn sm" onclick="stepGapOffset(${i},-0.5)">−</button>
             <input type="number" id="gapoffset-${i}" step="0.5" value="${offVal}" onchange="setGapOffset(${i},this.value)">
-            <button class="stp-btn sm" onclick="stepGapOffset(${i},0.5)">＋</button>
+            <div class="stp-stack">
+              <button class="stp-btn" onclick="stepGapOffset(${i},0.5)">＋</button>
+              <button class="stp-btn" onclick="stepGapOffset(${i},-0.5)">−</button>
+            </div>
           </div>
-          <label class="checkline"><input type="checkbox" ${gapForceHalf[i]?'checked':''} onchange="setForceHalf(${i},this.checked)">自動判定を無視し半分減算に固定</label>
+          <label class="checkline"><input type="checkbox" ${gapForceHalf[i]?'checked':''} onchange="setForceHalf(${i},this.checked)">自動判定無視・半分減算固定</label>
         </div>`;
       wrap.appendChild(gapDiv);
     }
@@ -706,29 +605,41 @@ function updateLeg(id, key, val){
 
 function updateResults(){
   const r = compute();
-  const tlBar = document.getElementById('timelineBar');
-  tlBar.innerHTML='';
 
   if(!r || r.incomplete){
     document.getElementById('gaugeCaption').textContent='STD・STAを入力してください';
     document.getElementById('marginBig').textContent='--';
+    // S/U表示だけは可能な範囲で更新
+    if(r && r.resolved){
+      r.resolved.forEach(l=>{
+        const el = document.getElementById(`suval-${l.id}`);
+        if(el) el.textContent = fmtClock(l.suCursor);
+      });
+    }
     return;
   }
+
+  r.resolved.forEach(l=>{
+    const el = document.getElementById(`suval-${l.id}`);
+    if(el) el.textContent = fmtClock(l.suCursor);
+  });
 
   let totalDeduction = 0;
   let chosenGapIdx = (dedGapIndex < r.gaps.length) ? dedGapIndex : null;
 
   r.gaps.forEach((g,i)=>{
     const durEl = document.getElementById(`gapdur-${i}`);
-    const timesEl = document.getElementById(`gaptimes-${i}`);
+    const startEl = document.getElementById(`gapstart-${i}`);
+    const endEl = document.getElementById(`gapend-${i}`);
     const badgeEl = document.getElementById(`gapbadge-${i}`);
     if(!g){ if(durEl) durEl.textContent='--:--'; return; }
     if(durEl) durEl.textContent = fmtHM(g.dur);
-    if(timesEl) timesEl.textContent = `${fmtClock(g.start)} 〜 ${fmtClock(g.end)}`;
+    if(startEl) startEl.textContent = fmtClock(g.start);
+    if(endEl) endEl.textContent = fmtClock(g.end);
     if(badgeEl){
       if(g.dur<3*60){ badgeEl.className='badge no'; badgeEl.textContent='休養3h未満：減算対象外'; }
       else if(gapForceHalf[i]){ badgeEl.className='badge no'; badgeEl.textContent='手動固定：半分減算'; }
-      else if(g.nightOk && g.tzDiffOk){ badgeEl.className='badge ok'; badgeEl.textContent='全部減算 可（ローカルナイト+時差2h以内）'; }
+      else if(g.nightOk && g.tzDiffOk){ badgeEl.className='badge ok'; badgeEl.textContent='全部減算 可'; }
       else if(g.dur>=10*60 && g.nightOk && !g.tzDiffOk){ badgeEl.className='badge no'; badgeEl.textContent='半分減算のみ（時差2h超）'; }
       else if(g.dur>=10*60 && !g.nightOk){ badgeEl.className='badge no'; badgeEl.textContent='半分減算のみ（ローカルナイト8h未確保）'; }
       else { badgeEl.className='badge no'; badgeEl.textContent='半分減算（休養10h未満）'; }
@@ -739,9 +650,9 @@ function updateResults(){
     const g = r.gaps[chosenGapIdx];
     if(g.dur>=3*60){
       if(g.dur>=10*60 && g.nightOk && g.tzDiffOk && !gapForceHalf[chosenGapIdx]){
-        totalDeduction = g.dur; // 全部減算 (OM 5.8.2.2.4-2)
+        totalDeduction = g.dur;
       } else {
-        totalDeduction = g.dur/2; // 半分減算 (OM 5.8.2.2.4-1, 2名編成)
+        totalDeduction = g.dur/2;
       }
     } else {
       totalDeduction = 0;
@@ -757,25 +668,6 @@ function updateResults(){
   const limits = FDP_TABLE[band][Math.min(Math.max(r.landings,2),6)] || FDP_TABLE[band][2];
   const fdpLimit = limits[1];
   const margin = fdpLimit - fdpAfter;
-
-  const segs = [];
-  r.resolved.forEach((l,i)=>{
-    if(l.suCursor!==null && l.staCursor!==null){
-      segs.push({type:'duty', dur: (i===r.resolved.length-1? l.staCursor-l.suCursor : (l.businessEndCursor-l.suCursor))});
-    }
-    if(i<r.resolved.length-1 && r.gaps[i]){
-      segs.push({type: i===chosenGapIdx?'rest':'duty', dur:r.gaps[i].dur});
-    }
-  });
-  const totalDur = segs.reduce((a,s)=>a+Math.max(s.dur,0),0)||1;
-  segs.forEach(s=>{
-    const d = document.createElement('div');
-    d.className = s.type==='rest'?'tl-duty tl-rest':'tl-duty';
-    d.style.width = (Math.max(s.dur,0)/totalDur*100)+'%';
-    tlBar.appendChild(d);
-  });
-  document.getElementById('tlStart').textContent = fmtClock(r.first.suCursor);
-  document.getElementById('tlEnd').textContent = fmtClock(r.last.staCursor);
 
   document.getElementById('kvSuTime').textContent = `${fmtClock(r.first.suCursor)} / ${fmtClockLocal(r.first.suCursor, r.offset)}`;
   document.getElementById('kvBand').textContent = `${band} / 着陸${r.landings}回`;
@@ -808,7 +700,6 @@ function updateResults(){
   }
   if(otherLongGap){ caption.textContent += '（他に3h以上の休養区間あり要確認）'; }
 
-  // ==== 上限超過時に必要な休養（常時表示） ====
   const restH = parseFloat(document.getElementById('restType').value)||11;
   const wocl = overlapsWOCL(r.first.suCursor, r.last.staCursor, r.offset);
   let woclAdd = 0;
