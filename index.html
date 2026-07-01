@@ -102,7 +102,7 @@
   .flightno{width:82px !important;font-size:14px !important;padding:4px 6px !important;}
 
   /* legs: side by side */
-  #legs{display:flex;flex-wrap:wrap;gap:8px;}
+  .legs-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:7px;}
   .leg{
     border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--panel2);
     flex:1 1 300px;min-width:270px;
@@ -125,9 +125,8 @@
   .dash{color:var(--muted);margin-bottom:5px;}
 
   .gap{
-    flex:1 1 100%;
     border:1px solid var(--line);border-radius:6px;background:#0d1216;padding:7px 8px;
-    font-size:12.5px;color:var(--muted);
+    margin-bottom:7px;font-size:12.5px;color:var(--muted);
   }
   .gap-line{margin-bottom:4px;}
   .gap-line b{font-family:var(--mono);color:var(--text);font-weight:600;}
@@ -226,7 +225,6 @@
       </div>
     </div>
   </div>
-  <p class="note">「時差」は<b>出発地（通常は日本）を基準に乗務員が時差順応している地域</b>のUTCオフセットで、目的地の時差そのものではありません。48時間以内で完結する一連続勤務では通常は出発地（日本＝+9）のままです。日本→バンコク→インドのように時差順応地域が変わりうる乗務では、区間ごとの「休養地UTCオフセット」欄で個別に調整してください（OM 5.8.2.1参照）。</p>
 </section>
 
 <!-- ==== 2. 乗務区間 ==== -->
@@ -496,6 +494,10 @@ function compute(){
 function render(){
   const wrap = document.getElementById('legs');
   wrap.innerHTML = '';
+  const legsRow = document.createElement('div');
+  legsRow.className = 'legs-row';
+  wrap.appendChild(legsRow);
+
   legs.forEach((l,i)=>{
     const div = document.createElement('div');
     div.className='leg';
@@ -514,18 +516,18 @@ function render(){
           <label>出頭時刻 <span class="small">(ADM 3.1.2.10)</span></label>
           <div class="lead-row">
             <div class="stepper">
-              <input type="number" min="0" max="9" step="1" value="${l.suLeadH}" ${l.suOverride?'disabled':''} onchange="updateLeg(${l.id},'suLeadH',this.value)">
+              <input type="number" min="0" max="9" step="1" value="${l.suLeadH}" onchange="updateLeg(${l.id},'suLeadH',this.value)">
               <div class="stp-stack">
-                <button class="stp-btn" ${l.suOverride?'disabled':''} onclick="stepLegVal(${l.id},'suLeadH',1,0,9)">＋</button>
-                <button class="stp-btn" ${l.suOverride?'disabled':''} onclick="stepLegVal(${l.id},'suLeadH',-1,0,9)">−</button>
+                <button class="stp-btn" onclick="stepLegVal(${l.id},'suLeadH',1,0,9)">＋</button>
+                <button class="stp-btn" onclick="stepLegVal(${l.id},'suLeadH',-1,0,9)">−</button>
               </div>
             </div>
             <span class="plus">+</span>
             <div class="stepper">
-              <input type="number" min="0" max="55" step="5" value="${l.suLeadM}" ${l.suOverride?'disabled':''} onchange="updateLeg(${l.id},'suLeadM',this.value)">
+              <input type="number" min="0" max="55" step="5" value="${l.suLeadM}" onchange="updateLeg(${l.id},'suLeadM',this.value)">
               <div class="stp-stack">
-                <button class="stp-btn" ${l.suOverride?'disabled':''} onclick="stepLegVal(${l.id},'suLeadM',5,0,55)">＋</button>
-                <button class="stp-btn" ${l.suOverride?'disabled':''} onclick="stepLegVal(${l.id},'suLeadM',-5,0,55)">−</button>
+                <button class="stp-btn" onclick="stepLegVal(${l.id},'suLeadM',5,0,55)">＋</button>
+                <button class="stp-btn" onclick="stepLegVal(${l.id},'suLeadM',-5,0,55)">−</button>
               </div>
             </div>
             <span class="suffix">前</span>
@@ -581,8 +583,10 @@ function render(){
           </select>
         </div>
       </div>`;
-    wrap.appendChild(div);
+    legsRow.appendChild(div);
+  });
 
+  legs.forEach((l,i)=>{
     if(i<legs.length-1){
       const gapDiv = document.createElement('div');
       gapDiv.className='gap';
@@ -752,7 +756,7 @@ function renderRefTable(){
 document.getElementById('offset').addEventListener('change', render);
 
 renderRefTable();
-addLeg({arrAirport:'OTHER'});
+addLeg({arrAirport:'OTHER', suLeadH:1, suLeadM:40});
 addLeg({arrAirport:'HND_NRT'});
 fillTSA();
 </script>
