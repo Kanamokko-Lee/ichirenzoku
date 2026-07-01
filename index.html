@@ -42,14 +42,17 @@
   .sub{color:var(--muted);font-size:13px;margin:0 0 8px;line-height:1.4;}
   .btn-group{display:flex;gap:6px;}
   .tsa-btn{
-    background:var(--amber);color:#1a1200;border:none;font-family:var(--mono);font-weight:700;
+    background:var(--amber);color:#1a1200;border:2px solid var(--amber);font-family:var(--mono);font-weight:700;
     font-size:14px;letter-spacing:.04em;padding:8px 16px;border-radius:6px;cursor:pointer;
   }
   .tsa-btn:active{background:#e09b2c;}
-  .tsa-btn.alt{background:var(--panel2);color:var(--amber);border:1px solid var(--amber-dim);}
-  .tsa-btn.alt:active{background:var(--line);}
   .tsa-btn.active{background:#000;color:var(--amber);border:2px solid var(--amber);}
   .tsa-btn.active:active{background:#000;}
+  .reset-btn{
+    background:none;border:1px solid var(--line);color:var(--muted);font-size:11px;
+    padding:6px 10px;border-radius:6px;cursor:pointer;
+  }
+  .reset-btn:hover{border-color:var(--red);color:var(--red);}
   .disclaimer{
     background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--amber);
     border-radius:4px;padding:6px 9px;font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;
@@ -187,12 +190,14 @@
   </div>
   <div class="btn-group">
     <button class="tsa-btn" id="btnTsa" onclick="fillTSA()" title="検証用サンプル(JAL99/JAL96)を入力">TSA</button>
-    <button class="tsa-btn alt" id="btnTpe" onclick="fillTPE()" title="検証用サンプル(JAL809/JAL802)を入力">TPE</button>
+    <button class="tsa-btn" id="btnTpe" onclick="fillTPE()" title="検証用サンプル(JAL809/JAL802)を入力">TPE</button>
+    <button class="reset-btn" onclick="clearSavedState()" title="保存データを消去してTSA初期値に戻す">保存データ消去</button>
   </div>
 </div>
 
 <div class="disclaimer">
-  個人用の参照ツールです。会社の正式な乗務割・BRICの判定に優先するものではありません。時差順応地域の判定（OM 5.8.2.1）や不測の事態への対応（5.8.3.6）はPIC判断事項のため自動判定していません。業務終了バフ値はOM未明記のため就業規程第22条参照の推定値です。
+  個人用の参照ツールです。会社の正式な乗務割・BRICの判定に優先するものではありません。時差順応地域の判定（OM 5.8.2.1）や不測の事態への対応（5.8.3.6）はPIC判断事項のため自動判定していません。業務終了バフ値はOM未明記のため就業規程第22条参照の推定値です。<br>
+  入力内容はこの端末のブラウザに自動保存され、次回開いたときに復元されます（他の端末とは同期されません）。
 </div>
 
 <!-- ==== 1. 基本設定 ==== -->
@@ -649,6 +654,7 @@ function updateResults(){
         if(el) el.textContent = fmtClock(l.suCursor);
       });
     }
+    saveState();
     return;
   }
 
@@ -747,6 +753,7 @@ function updateResults(){
   document.getElementById('reqRestUntil').textContent = fmtClock(restUntil);
   document.getElementById('reqNextSu').textContent = fmtClock(restUntil);
   document.getElementById('reqNextStd').textContent = fmtClock(restUntil+nextLead);
+  saveState();
 }
 
 /* ============ 参照表描画 ============ */
@@ -764,13 +771,56 @@ function renderRefTable(){
   t.innerHTML = html;
 }
 
+/* ============ 保存(localStorage) ============ */
+const STORAGE_KEY = 'ichirenzoku_checker_state_v1';
+
+function saveState(){
+  try{
+    const state = {
+      legs, dedGapIndex, gapRestOffset, gapForceHalf, legIdSeq,
+      offset: document.getElementById('offset').value,
+      restType: document.getElementById('restType').value,
+      nextLead: document.getElementById('nextLead').value,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){ /* 保存できない環境(プライベートモード等)は無視 */ }
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const state = JSON.parse(raw);
+    if(!state.legs || !state.legs.length) return false;
+    legs = state.legs;
+    dedGapIndex = state.dedGapIndex||0;
+    gapRestOffset = state.gapRestOffset||{};
+    gapForceHalf = state.gapForceHalf||{};
+    legIdSeq = state.legIdSeq || legs.reduce((m,l)=>Math.max(m,l.id||0),0);
+    document.getElementById('offset').value = state.offset ?? '9';
+    document.getElementById('restType').value = state.restType ?? '11';
+    document.getElementById('nextLead').value = state.nextLead ?? '90';
+    return true;
+  }catch(e){ return false; }
+}
+function clearSavedState(){
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  legs = []; dedGapIndex = 0; gapRestOffset = {}; gapForceHalf = {};
+  addLeg({arrAirport:'OTHER', suLeadH:1, suLeadM:40});
+  addLeg({arrAirport:'HND_NRT'});
+  fillTSA();
+}
+
 /* ============ init ============ */
 document.getElementById('offset').addEventListener('change', render);
 
 renderRefTable();
-addLeg({arrAirport:'OTHER', suLeadH:1, suLeadM:40});
-addLeg({arrAirport:'HND_NRT'});
-fillTSA();
+if(loadState()){
+  render();
+} else {
+  addLeg({arrAirport:'OTHER', suLeadH:1, suLeadM:40});
+  addLeg({arrAirport:'HND_NRT'});
+  fillTSA();
+}
 </script>
 </body>
 </html>
