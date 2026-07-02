@@ -117,13 +117,6 @@
   }
   .leg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
   .leg-head .tag{font-family:var(--mono);font-size:13px;color:var(--amber);letter-spacing:.04em;}
-  .rmv{background:none;border:1px solid var(--line);color:var(--muted);font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;}
-  .rmv:hover{border-color:var(--red);color:var(--red);}
-  .add-leg{
-    width:100%;padding:8px;background:none;border:1px dashed var(--line);color:var(--muted);
-    border-radius:6px;font-size:13px;cursor:pointer;margin-top:2px;
-  }
-  .add-leg:hover{border-color:var(--amber);color:var(--amber);}
 
   .leg-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:5px 0;border-top:1px dotted var(--line);}
   .leg-row:first-of-type{border-top:none;padding-top:0;}
@@ -185,6 +178,9 @@
   .rr-title{font-size:11.5px;color:var(--muted);line-height:1.4;margin:0 0 6px;}
   .rr-title #ataNote{color:var(--amber);}
   .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .eq-col{display:flex;flex-direction:column;gap:2px;}
+  .eq-sym{text-align:center;color:var(--muted);font-family:var(--mono);font-size:15px;line-height:1.2;}
+  .stat.wide{width:100%;}
   .stat{background:#0d1216;border:1px solid var(--amber-dim);border-radius:7px;padding:6px;text-align:center;}
   .stat .stat-label{font-size:10px;color:var(--muted);margin-bottom:2px;line-height:1.3;}
   .stat .stat-val{font-family:var(--mono);font-size:16px;font-weight:800;color:var(--amber);}
@@ -230,7 +226,6 @@
 <section>
   <p class="sec-title"><span class="num">01</span> 乗務区間（すべてUTC入力）</p>
   <div id="legs"></div>
-  <button class="add-leg" onclick="addLeg()">＋ 区間を追加</button>
 </section>
 
 <!-- ==== 2. 判定結果 ==== -->
@@ -265,16 +260,21 @@
       <div class="field" style="margin-bottom:7px;">
         <label>ATA（区間1 実到着・遅延時のみ入力）</label>
         <div style="display:flex;align-items:center;">
-          <input class="time-red" type="time" id="ataOverride" onchange="updateResults()"><span class="zsuffix">z</span>
+          <input class="time-red" type="time" id="ataOverride" onchange="setAtaOverride(this.value)"><span class="zsuffix">z</span>
           <div class="stp-stack" style="margin-left:4px;">
             <button class="stp-btn" onclick="stepAtaTime(5)">＋</button>
             <button class="stp-btn" onclick="stepAtaTime(-5)">−</button>
           </div>
         </div>
       </div>
-      <div class="stat-row">
-        <div class="stat"><div class="stat-label">必要休養合計</div><div class="stat-val" id="reqRestTotal">--</div></div>
-        <div class="stat"><div class="stat-label">休養完了</div><div class="stat-val" id="reqRestUntil">--</div></div>
+      <div class="eq-col">
+        <div class="stat wide"><div class="stat-label">休養開始時刻</div><div class="stat-val" id="reqRestStart">--</div></div>
+        <div class="eq-sym">+</div>
+        <div class="stat wide"><div class="stat-label">必要休養時間（合計）</div><div class="stat-val" id="reqRestTotal">--</div></div>
+        <div class="eq-sym">=</div>
+        <div class="stat wide"><div class="stat-label">休養完了</div><div class="stat-val" id="reqRestUntil">--</div></div>
+      </div>
+      <div class="stat-row" style="margin-top:7px;">
         <div class="stat"><div class="stat-label">次便 出頭可</div><div class="stat-val" id="reqNextSu">--</div></div>
         <div class="stat"><div class="stat-label">次便 STD目安</div><div class="stat-val" id="reqNextStd">--</div></div>
       </div>
@@ -310,6 +310,7 @@ let legs = [];
 let dedGapIndex = 0;
 let gapRestOffset = {};
 let gapForceHalf = {};
+let ataOverrideVal = ''; // ATA(区間1実到着)のソース・オブ・トゥルース。DOMのvalueは表示専用として都度同期する。
 
 function newLeg(preset){
   legIdSeq++;
@@ -319,15 +320,19 @@ function newLeg(preset){
   }, preset||{});
 }
 
-function addLeg(preset){
-  legs.push(newLeg(preset));
+function initLegs(){
+  legIdSeq = 0;
+  legs = [newLeg({arrAirport:'OTHER', suLeadH:1, suLeadM:40}), newLeg({arrAirport:'HND_NRT'})];
   dedGapIndex = 0;
-  render();
 }
-function removeLeg(id){
-  legs = legs.filter(l=>l.id!==id);
-  dedGapIndex = 0;
-  render();
+function syncAtaDefault(){
+  ataOverrideVal = (legs[0] && legs[0].sta) || '';
+  const ata = document.getElementById('ataOverride');
+  if(ata) ata.value = ataOverrideVal;
+}
+function setAtaOverride(val){
+  ataOverrideVal = val || '';
+  updateResults();
 }
 function setActiveBtn(id){
   const tsa = document.getElementById('btnTsa');
@@ -338,16 +343,16 @@ function setActiveBtn(id){
   if(el) el.classList.add('active');
 }
 function fillTSA(){
-  while(legs.length<2) addLeg();
   legs[0].std='09:25'; legs[0].sta='12:50'; legs[0].flightNo='JAL99'; legs[0].suOverride='';
   legs[1].std='01:40'; legs[1].sta='04:50'; legs[1].flightNo='JAL96'; legs[1].suOverride='';
+  syncAtaDefault();
   render();
   setActiveBtn('btnTsa');
 }
 function fillTPE(){
-  while(legs.length<2) addLeg();
   legs[0].std='09:05'; legs[0].sta='13:10'; legs[0].flightNo='JAL809'; legs[0].suOverride='07:30';
   legs[1].std='02:35'; legs[1].sta='05:40'; legs[1].flightNo='JAL802'; legs[1].suOverride='01:10';
+  syncAtaDefault();
   render();
   setActiveBtn('btnTpe');
 }
@@ -404,8 +409,7 @@ function setForceHalf(idx, checked){
 }
 // ATA(区間1実到着)を5分刻みで増減。0:00-23:55の範囲で循環。
 function stepAtaTime(delta){
-  const el = document.getElementById('ataOverride');
-  let cur = el.value;
+  let cur = ataOverrideVal;
   let mins;
   if(!cur){
     mins = 0;
@@ -415,11 +419,9 @@ function stepAtaTime(delta){
   }
   mins = ((mins+delta)%1440+1440)%1440;
   const h = Math.floor(mins/60), m = mins%60;
-  el.value = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-  updateResults();
-}
-function setDedGap(idx){
-  dedGapIndex = idx;
+  ataOverrideVal = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  const el = document.getElementById('ataOverride');
+  if(el) el.value = ataOverrideVal;
   updateResults();
 }
 
@@ -552,7 +554,6 @@ function render(){
     div.innerHTML = `
       <div class="leg-head">
         <span class="tag">区間 ${i+1}</span>
-        ${legs.length>1?`<button class="rmv" onclick="removeLeg(${l.id})">削除</button>`:''}
       </div>
 
       <div class="leg-row">
@@ -634,7 +635,6 @@ function render(){
         <div class="gap-line">休養開始: <b id="gapstart-${i}">--:--</b> 〜 休養終了: <b id="gapend-${i}">--:--</b></div>
         <div class="gap-line gap-bottom">
           休養時間: <span class="dur" id="gapdur-${i}">--+--</span>
-          <label class="checkline"><input type="radio" name="dedgap" id="gapuse-${i}" ${dedGapIndex===i?'checked':''} onchange="setDedGap(${i})"> 減算対象</label>
         </div>
         <div class="gap-elig">
           <span class="badge" id="gapbadge-${i}">--</span>
@@ -659,6 +659,9 @@ function updateLeg(id, key, val){
   const leg = legs.find(l=>l.id===id);
   if(!leg) return;
   leg[key]=val;
+  if(legs.length>0 && id===legs[0].id && key==='sta'){
+    syncAtaDefault();
+  }
   render();
 }
 
@@ -767,7 +770,7 @@ function updateResults(){
   const restH = parseFloat(document.getElementById('restType').value)||11;
 
   // ATA上書き（区間1が実際に遅延して到着した場合の what-if）
-  const ataVal = document.getElementById('ataOverride').value;
+  const ataVal = ataOverrideVal;
   const leg1 = r.resolved[0];
   let restStart, woclSegStart, woclSegEnd, ataNoteText='';
   if(ataVal && leg1 && leg1.suCursor!==null){
@@ -803,6 +806,7 @@ function updateResults(){
   const restUntil = restStart + restH*60 + woclAdd;
   const nextLead = parseFloat(document.getElementById('nextLead').value)||0;
   document.getElementById('ataNote').textContent = ataNoteText;
+  document.getElementById('reqRestStart').textContent = fmtClock(restStart);
   document.getElementById('reqRestBase').textContent = restH;
   document.getElementById('reqRestWocl').textContent = woclAdd?fmtHM(woclAdd):'0+00';
   document.getElementById('reqRestTotal').textContent = fmtHM(restH*60+woclAdd);
@@ -860,9 +864,8 @@ function loadState(){
 }
 function clearSavedState(){
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
-  legs = []; dedGapIndex = 0; gapRestOffset = {}; gapForceHalf = {};
-  addLeg({arrAirport:'OTHER', suLeadH:1, suLeadM:40});
-  addLeg({arrAirport:'HND_NRT'});
+  gapRestOffset = {}; gapForceHalf = {};
+  initLegs();
   fillTSA();
 }
 
@@ -871,10 +874,10 @@ document.getElementById('offset').addEventListener('change', render);
 
 renderRefTable();
 if(loadState()){
+  syncAtaDefault();
   render();
 } else {
-  addLeg({arrAirport:'OTHER', suLeadH:1, suLeadM:40});
-  addLeg({arrAirport:'HND_NRT'});
+  initLegs();
   fillTSA();
 }
 </script>
