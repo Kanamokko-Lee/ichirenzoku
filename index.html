@@ -86,6 +86,7 @@
   input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
   input[type=number]{-moz-appearance:textfield;}
   input[type=time].time-hi{color:var(--green);font-weight:700;}
+  input[type=time].time-red{color:var(--red);font-weight:800;font-size:19px;}
 
   .zsuffix{color:var(--muted);font-family:var(--mono);font-size:13px;margin-left:2px;}
 
@@ -264,7 +265,11 @@
       <div class="field" style="margin-bottom:7px;">
         <label>ATA（区間1 実到着・遅延時のみ入力）</label>
         <div style="display:flex;align-items:center;">
-          <input class="time-hi" type="time" id="ataOverride" onchange="updateResults()"><span class="zsuffix">z</span>
+          <input class="time-red" type="time" id="ataOverride" onchange="updateResults()"><span class="zsuffix">z</span>
+          <div class="stp-stack" style="margin-left:4px;">
+            <button class="stp-btn" onclick="stepAtaTime(5)">＋</button>
+            <button class="stp-btn" onclick="stepAtaTime(-5)">−</button>
+          </div>
         </div>
       </div>
       <div class="stat-row">
@@ -395,6 +400,22 @@ function setGapOffset(idx, val){
 }
 function setForceHalf(idx, checked){
   gapForceHalf[idx]=checked;
+  updateResults();
+}
+// ATA(区間1実到着)を5分刻みで増減。0:00-23:55の範囲で循環。
+function stepAtaTime(delta){
+  const el = document.getElementById('ataOverride');
+  let cur = el.value;
+  let mins;
+  if(!cur){
+    mins = 0;
+  } else {
+    const [h,m] = cur.split(':').map(Number);
+    mins = h*60+m;
+  }
+  mins = ((mins+delta)%1440+1440)%1440;
+  const h = Math.floor(mins/60), m = mins%60;
+  el.value = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
   updateResults();
 }
 function setDedGap(idx){
