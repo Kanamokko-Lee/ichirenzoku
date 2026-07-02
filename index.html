@@ -256,7 +256,7 @@
     </div>
 
     <div class="results-right">
-      <p class="rr-title">上限超過時に必要な休養<br>（連続<span id="reqRestBase">--</span>h + WOCL加算<span id="reqRestWocl">--</span>）<span id="ataNote"></span></p>
+      <p class="rr-title">上限超過時に必要な休養<br>（連続<span id="reqRestBase">--</span>h + WOCL加算<span id="reqRestWocl">--</span> + 時差加算<span id="reqRestTz">--</span>）<span id="ataNote"></span></p>
       <div class="field" style="margin-bottom:7px;">
         <label>ATA（区間1 実到着・遅延時のみ入力）</label>
         <div style="display:flex;align-items:center;">
@@ -358,25 +358,6 @@ function fillTPE(){
 }
 
 /* ============ ステッパー ============ */
-function stepGlobalVal(id, delta, min, max, after){
-  const el = document.getElementById(id);
-  let v = parseFloat(el.value)||0;
-  v = Math.round((v+delta)*100)/100;
-  if(min!==undefined) v=Math.max(min,v);
-  if(max!==undefined) v=Math.min(max,v);
-  el.value = v;
-  after();
-}
-function stepLegVal(legId, key, delta, min, max){
-  const leg = legs.find(l=>l.id===legId);
-  if(!leg) return;
-  let v = parseFloat(leg[key])||0;
-  v = Math.round(v+delta);
-  if(min!==undefined) v=Math.max(min,v);
-  if(max!==undefined) v=Math.min(max,v);
-  leg[key]=v;
-  render();
-}
 // 出頭時刻の「分」ステッパー：55分を超えたら時を+1して0分に、0分を下回ったら時を-1して55分に
 function stepLeadMinute(legId, delta){
   const leg = legs.find(l=>l.id===legId);
@@ -779,7 +760,9 @@ function updateResults(){
     restStart = ataBusinessEnd;
     woclSegStart = leg1.suCursor;
     woclSegEnd = ataCursor;
-    ataNoteText = ' — ATA基準（区間1が' + fmtClock(ataCursor) + 'に実着陸した場合）';
+    if(ataVal !== (legs[0] && legs[0].sta)){
+      ataNoteText = ' — ATA基準（区間1が' + fmtClock(ataCursor) + 'に実着陸した場合）';
+    }
   } else {
     restStart = r.last.businessEndCursor;
     woclSegStart = null; // 下のデフォルト計算(複数区間合算)を使う
@@ -803,13 +786,22 @@ function updateResults(){
   let woclAdd = 0;
   if(woclMinutesTotal>0) woclAdd = woclMinutesTotal>=120 ? 240 : 120;
 
-  const restUntil = restStart + restH*60 + woclAdd;
+  // 時差加算（就業規程17条1項(1)）: 2時間以上の時差がある地域へ運航後、
+  // 到着地で勤務を終え休養する場合、時差1時間（1時間未満は繰り上げ）あたり30分を加算。
+  // 休養地の時差は「休養地UTCオフセット」欄の値を使用。12時間を超える時差は24-Tとする。
+  const restLocOffset = gapRestOffset[0]!==undefined ? gapRestOffset[0] : r.offset;
+  let tzT = Math.abs(restLocOffset - r.offset);
+  if(tzT>12) tzT = 24 - tzT;
+  const tzAdd = (tzT>=2) ? Math.ceil(tzT)*30 : 0;
+
+  const restUntil = restStart + restH*60 + woclAdd + tzAdd;
   const nextLead = parseFloat(document.getElementById('nextLead').value)||0;
   document.getElementById('ataNote').textContent = ataNoteText;
   document.getElementById('reqRestStart').textContent = fmtClock(restStart);
   document.getElementById('reqRestBase').textContent = restH;
   document.getElementById('reqRestWocl').textContent = woclAdd?fmtHM(woclAdd):'0+00';
-  document.getElementById('reqRestTotal').textContent = fmtHM(restH*60+woclAdd);
+  document.getElementById('reqRestTz').textContent = tzAdd?fmtHM(tzAdd):'0+00';
+  document.getElementById('reqRestTotal').textContent = fmtHM(restH*60+woclAdd+tzAdd);
   document.getElementById('reqRestUntil').textContent = fmtClock(restUntil);
   document.getElementById('reqNextSu').textContent = fmtClock(restUntil);
   document.getElementById('reqNextStd').textContent = fmtClock(restUntil+nextLead);
@@ -832,7 +824,7 @@ function renderRefTable(){
 }
 
 /* ============ 保存(localStorage) ============ */
-const STORAGE_KEY = 'ichirenzoku_checker_state_v1';
+const STORAGE_KEY = 'ichirenzoku_checker_state_v2';
 
 function saveState(){
   try{
@@ -850,7 +842,8 @@ function loadState(){
     const raw = localStorage.getItem(STORAGE_KEY);
     if(!raw) return false;
     const state = JSON.parse(raw);
-    if(!state.legs || !state.legs.length) return false;
+    if(!state.legs || state.legs.length!==2) return false;
+    if(!state.legs.every(l=>l && typeof l==='object' && 'sta' in l && 'suLeadH' in l && 'suLeadM' in l)) return false;
     legs = state.legs;
     dedGapIndex = state.dedGapIndex||0;
     gapRestOffset = state.gapRestOffset||{};
