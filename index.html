@@ -31,7 +31,7 @@
     font-size:15px;
     -webkit-font-smoothing:antialiased;
     padding:10px;
-    max-width:960px;
+    max-width:1360px;
     margin:0 auto;
     padding-bottom:24px;
   }
@@ -120,7 +120,10 @@
 
   .leg-body{display:flex;gap:10px;align-items:stretch;}
   .leg-info{flex:1 1 auto;min-width:0;}
-  .leg-select-col{flex:0 0 118px;justify-content:center;border-left:1px dotted var(--line);padding-left:10px;}
+  .leg-select-col{flex:0 0 200px;justify-content:center;border-left:1px dotted var(--line);padding-left:10px;}
+  .field-inline{display:flex;flex-direction:row;align-items:center;gap:6px;}
+  .field-inline label{white-space:nowrap;flex:0 0 auto;min-width:48px;margin:0;font-size:11px;color:var(--muted);}
+  .field-inline select{flex:1 1 auto;font-size:13px;padding:4px 5px;height:30px;}
 
   .leg-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:6px 0;border-top:1px dotted var(--line);}
   .leg-row:first-of-type{border-top:none;padding-top:0;}
@@ -154,9 +157,9 @@
 
   /* results */
   .results-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;}
-  .results-left{flex:1 1 320px;max-width:calc(50% - 5px);min-width:260px;}
+  .results-left{flex:1 1 420px;min-width:320px;}
   .results-right{
-    flex:1 1 320px;max-width:calc(50% - 5px);min-width:260px;background:var(--panel2);border:1px solid var(--line);
+    flex:1.4 1 460px;min-width:380px;background:var(--panel2);border:1px solid var(--line);
     border-radius:6px;padding:10px;
   }
   .gauge{display:flex;align-items:baseline;gap:8px;justify-content:center;padding:4px 0 2px;}
@@ -191,8 +194,8 @@
   .rr-title{font-size:11.5px;color:var(--muted);line-height:1.4;margin:0 0 6px;}
   .rr-title #ataNote{color:var(--amber);}
   .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-  .eq-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-  .eq-row .stat{flex:1 1 140px;}
+  .eq-row{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;}
+  .eq-row .stat{flex:1 1 0;min-width:0;}
   .eq-sym{color:var(--muted);font-family:var(--mono);font-size:20px;font-weight:700;flex:0 0 auto;}
   .stat.wide{width:100%;}
   .stat{background:#0d1216;border:1px solid var(--amber-dim);border-radius:7px;padding:8px;text-align:center;}
@@ -598,14 +601,14 @@ function render(){
         </div>
 
         <div class="field-stack leg-select-col">
-          <div class="field compact">
+          <div class="field-inline">
             <label>種別</label>
             <select onchange="updateLeg(${l.id},'type',this.value)">
               <option value="REV" ${l.type==='REV'?'selected':''}>乗務</option>
               <option value="DH" ${l.type==='DH'?'selected':''}>DEAD HEAD</option>
             </select>
           </div>
-          <div class="field compact">
+          <div class="field-inline">
             <label>到着空港</label>
             <select onchange="updateLeg(${l.id},'arrAirport',this.value)">
               <option value="HND_NRT" ${l.arrAirport==='HND_NRT'?'selected':''}>羽田・成田</option>
@@ -613,7 +616,7 @@ function render(){
               <option value="OTHER" ${l.arrAirport==='OTHER'?'selected':''}>その他</option>
             </select>
           </div>
-          <div class="field compact">
+          <div class="field-inline">
             <label>通関</label>
             <select onchange="updateLeg(${l.id},'customs',this.value)">
               <option value="YES" ${l.customs==='YES'?'selected':''}>要</option>
