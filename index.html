@@ -76,7 +76,7 @@
   .field.compact select, .field.compact input{font-size:12px;padding:3px 5px;}
   input[type=time], input[type=number], input[type=text], select{
     background:#0d1216;border:1px solid var(--line);color:var(--text);font-family:var(--mono);
-    font-size:16px;padding:5px 6px;border-radius:5px;outline:none;width:100%;
+    font-size:16px;padding:5px 6px;border-radius:5px;outline:none;width:100%;height:34px;
   }
   input[type=time]{min-width:88px;}
   input[type=number]{width:48px;text-align:center;}
@@ -96,8 +96,8 @@
   .stepper{display:flex;align-items:stretch;gap:3px;}
   .stp-stack{display:flex;flex-direction:column;gap:2px;}
   .stp-btn{
-    width:22px;height:15px;background:var(--panel2);border:1px solid var(--line);
-    color:var(--amber);font-size:10px;font-weight:700;border-radius:3px;cursor:pointer;
+    width:30px;height:20px;background:var(--panel2);border:1px solid var(--line);
+    color:var(--amber);font-size:13px;font-weight:700;border-radius:4px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;line-height:1;padding:0;
   }
   .stp-btn:active{background:var(--line);}
@@ -107,7 +107,7 @@
   .lead-row .suffix{color:var(--muted);font-size:12px;margin-left:3px;}
 
   .field-stack{display:flex;flex-direction:column;gap:4px;}
-  .flightno{width:82px !important;font-size:14px !important;padding:4px 6px !important;}
+  .flightno{width:82px !important;font-size:14px !important;padding:5px 6px !important;}
 
   /* legs: side by side */
   .legs-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:7px;}
@@ -118,12 +118,12 @@
   .leg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
   .leg-head .tag{font-family:var(--mono);font-size:13px;color:var(--amber);letter-spacing:.04em;}
 
-  .leg-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:5px 0;border-top:1px dotted var(--line);}
+  .leg-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:6px 0;border-top:1px dotted var(--line);}
   .leg-row:first-of-type{border-top:none;padding-top:0;}
   .su-display{display:flex;flex-direction:column;gap:2px;min-width:74px;}
-  .su-display .su-label{font-size:11px;color:var(--muted);}
-  .su-display .su-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green);}
-  .dash{color:var(--muted);margin-bottom:5px;}
+  .su-display .su-label{font-size:11px;color:var(--muted);line-height:1.3;}
+  .su-display .su-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green);line-height:1.2;}
+  .dash{color:var(--muted);align-self:center;}
 
   .gap{
     border:1px solid var(--line);border-radius:6px;background:#0d1216;padding:7px 8px;
@@ -149,11 +149,11 @@
   .badge.no{color:var(--red);border-color:var(--red-dim);background:#210f0f;}
 
   /* results */
-  .results-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;}
-  .results-left{flex:1 1 260px;min-width:230px;}
+  .results-row{display:flex;flex-direction:column;gap:10px;}
+  .results-left{width:100%;}
   .results-right{
-    flex:1 1 190px;min-width:170px;background:var(--panel2);border:1px solid var(--line);
-    border-radius:6px;padding:8px;
+    width:100%;background:var(--panel2);border:1px solid var(--line);
+    border-radius:6px;padding:10px;
   }
   .gauge{display:flex;align-items:baseline;gap:8px;justify-content:center;padding:4px 0 2px;}
   .gauge .big{font-family:var(--mono);font-size:38px;font-weight:700;letter-spacing:-.01em;}
@@ -170,6 +170,15 @@
   .kv .v.purple{color:var(--purple);}
   .kv .basis{color:var(--muted);font-size:11px;margin-left:4px;}
 
+  .calc-block{margin:4px 0 6px;}
+  .calc-line{display:flex;justify-content:flex-end;align-items:baseline;gap:6px;padding:2px 0;}
+  .calc-line.calc-minus{border-bottom:2px solid var(--text);padding-bottom:5px;}
+  .calc-op{font-family:var(--mono);color:var(--muted);font-size:15px;flex:0 0 auto;}
+  .calc-num{font-family:var(--mono);font-size:16px;color:var(--text);min-width:66px;text-align:right;}
+  .calc-num.purple{color:var(--purple);}
+  .calc-num.hi{color:var(--amber);font-size:19px;font-weight:800;}
+  .calc-basis{color:var(--muted);font-size:11px;flex:1 1 auto;text-align:left;}
+
   .banner{border-radius:6px;padding:7px 9px;font-size:12.5px;line-height:1.5;margin-top:7px;}
   .banner.ok{background:var(--green-dim);color:#c9ffe4;border:1px solid #2a7a54;}
   .banner.bad{background:var(--red-dim);color:#ffd6d6;border:1px solid #8a2c2c;}
@@ -177,13 +186,14 @@
 
   .rr-title{font-size:11.5px;color:var(--muted);line-height:1.4;margin:0 0 6px;}
   .rr-title #ataNote{color:var(--amber);}
-  .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-  .eq-col{display:flex;flex-direction:column;gap:2px;}
-  .eq-sym{text-align:center;color:var(--muted);font-family:var(--mono);font-size:15px;line-height:1.2;}
+  .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .eq-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .eq-row .stat{flex:1 1 140px;}
+  .eq-sym{color:var(--muted);font-family:var(--mono);font-size:20px;font-weight:700;flex:0 0 auto;}
   .stat.wide{width:100%;}
-  .stat{background:#0d1216;border:1px solid var(--amber-dim);border-radius:7px;padding:6px;text-align:center;}
-  .stat .stat-label{font-size:10px;color:var(--muted);margin-bottom:2px;line-height:1.3;}
-  .stat .stat-val{font-family:var(--mono);font-size:16px;font-weight:800;color:var(--amber);}
+  .stat{background:#0d1216;border:1px solid var(--amber-dim);border-radius:7px;padding:8px;text-align:center;}
+  .stat .stat-label{font-size:11px;color:var(--muted);margin-bottom:3px;line-height:1.3;}
+  .stat .stat-val{font-family:var(--mono);font-size:21px;font-weight:800;color:var(--amber);}
 
   details{margin-top:8px;}
   summary{font-size:12.5px;color:var(--muted);cursor:pointer;letter-spacing:.03em;}
@@ -241,9 +251,13 @@
       <div class="kv-grid">
         <div class="kv"><span class="k">飛行勤務開始時刻</span><span class="v hi" id="kvSuTime">--</span></div>
         <div class="kv"><span class="k">適用時間帯 / 着陸回数</span><span class="v" id="kvBand">--</span></div>
-        <div class="kv"><span class="k">一連続勤務時間（減算前）</span><span class="v" id="kvTotal">--</span></div>
-        <div class="kv"><span class="k">休養減算</span><span><span class="v purple" id="kvDeduction">--</span><span class="basis" id="kvDeductionBasis"></span></span></div>
-        <div class="kv"><span class="k">飛行勤務時間（減算後）</span><span class="v hi" id="kvFdp">--</span></div>
+      </div>
+      <div class="calc-block">
+        <div class="calc-line"><span class="calc-basis">一連続勤務時間（減算前）</span><span class="calc-num" id="kvTotal">--</span></div>
+        <div class="calc-line calc-minus"><span class="calc-op">−)</span><span class="calc-basis" id="kvDeductionBasis"></span><span class="calc-num purple" id="kvDeduction">--</span></div>
+        <div class="calc-line"><span class="calc-basis">飛行勤務時間（減算後）</span><span class="calc-num hi" id="kvFdp">--</span></div>
+      </div>
+      <div class="kv-grid">
         <div class="kv"><span class="k">飛行勤務時間 上限</span><span class="v hi" id="kvLimit">--</span></div>
       </div>
 
@@ -267,14 +281,14 @@
           </div>
         </div>
       </div>
-      <div class="eq-col">
-        <div class="stat wide"><div class="stat-label">休養開始時刻</div><div class="stat-val" id="reqRestStart">--</div></div>
+      <div class="eq-row">
+        <div class="stat"><div class="stat-label">休養開始時刻</div><div class="stat-val" id="reqRestStart">--</div></div>
         <div class="eq-sym">+</div>
-        <div class="stat wide"><div class="stat-label">必要休養時間（合計）</div><div class="stat-val" id="reqRestTotal">--</div></div>
+        <div class="stat"><div class="stat-label">必要休養時間（合計）</div><div class="stat-val" id="reqRestTotal">--</div></div>
         <div class="eq-sym">=</div>
-        <div class="stat wide"><div class="stat-label">休養完了</div><div class="stat-val" id="reqRestUntil">--</div></div>
+        <div class="stat"><div class="stat-label">休養完了</div><div class="stat-val" id="reqRestUntil">--</div></div>
       </div>
-      <div class="stat-row" style="margin-top:7px;">
+      <div class="stat-row" style="margin-top:8px;">
         <div class="stat"><div class="stat-label">次便 出頭可</div><div class="stat-val" id="reqNextSu">--</div></div>
         <div class="stat"><div class="stat-label">次便 STD目安</div><div class="stat-val" id="reqNextStd">--</div></div>
       </div>
@@ -427,9 +441,8 @@ function fmtHM(mins){
 function fmtClock(cursorMin){
   if(cursorMin===null||cursorMin===undefined||isNaN(cursorMin)) return '--:--z';
   const m = ((cursorMin%1440)+1440)%1440;
-  const dayOffset = Math.floor(cursorMin/1440);
   const h = Math.floor(m/60), mm = m%60;
-  return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}z${dayOffset>0?'(+'+dayOffset+'d)':''}`;
+  return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}z`;
 }
 function fmtClockLocal(cursorMin, offsetH){
   if(cursorMin===null||cursorMin===undefined) return '--:--L';
@@ -555,15 +568,6 @@ function render(){
             <span class="suffix">前</span>
           </div>
         </div>
-        <div class="field-stack">
-          <div class="field compact">
-            <label>種別</label>
-            <select onchange="updateLeg(${l.id},'type',this.value)">
-              <option value="REV" ${l.type==='REV'?'selected':''}>乗務</option>
-              <option value="DH" ${l.type==='DH'?'selected':''}>DEAD HEAD</option>
-            </select>
-          </div>
-        </div>
       </div>
 
       <div class="leg-row">
@@ -584,7 +588,17 @@ function render(){
             <input class="time-hi" type="time" value="${l.sta}" onchange="updateLeg(${l.id},'sta',this.value)"><span class="zsuffix">z</span>
           </div>
         </div>
-        <div class="field-stack">
+      </div>
+
+      <div class="leg-row">
+        <div class="field-stack" style="width:100%;max-width:140px;">
+          <div class="field compact">
+            <label>種別</label>
+            <select onchange="updateLeg(${l.id},'type',this.value)">
+              <option value="REV" ${l.type==='REV'?'selected':''}>乗務</option>
+              <option value="DH" ${l.type==='DH'?'selected':''}>DEAD HEAD</option>
+            </select>
+          </div>
           <div class="field compact">
             <label>到着空港</label>
             <select onchange="updateLeg(${l.id},'arrAirport',this.value)">
@@ -719,7 +733,7 @@ function updateResults(){
   document.getElementById('kvSuTime').textContent = `${fmtClock(r.first.suCursor)} / ${fmtClockLocal(r.first.suCursor, r.offset)}`;
   document.getElementById('kvBand').textContent = `${band} / 着陸${r.landings}回`;
   document.getElementById('kvTotal').textContent = fmtHM(totalSpan);
-  document.getElementById('kvDeduction').textContent = '-' + fmtHM(totalDeduction);
+  document.getElementById('kvDeduction').textContent = fmtHM(totalDeduction);
   document.getElementById('kvDeductionBasis').textContent = deductionBasis;
   document.getElementById('kvFdp').textContent = fmtHM(fdpAfter);
   document.getElementById('kvLimit').textContent = fmtHM(fdpLimit);
