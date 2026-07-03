@@ -118,6 +118,10 @@
   .leg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
   .leg-head .tag{font-family:var(--mono);font-size:13px;color:var(--amber);letter-spacing:.04em;}
 
+  .leg-body{display:flex;gap:10px;align-items:stretch;}
+  .leg-info{flex:1 1 auto;min-width:0;}
+  .leg-select-col{flex:0 0 118px;justify-content:center;border-left:1px dotted var(--line);padding-left:10px;}
+
   .leg-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:6px 0;border-top:1px dotted var(--line);}
   .leg-row:first-of-type{border-top:none;padding-top:0;}
   .su-display{display:flex;flex-direction:column;gap:2px;min-width:74px;}
@@ -149,10 +153,10 @@
   .badge.no{color:var(--red);border-color:var(--red-dim);background:#210f0f;}
 
   /* results */
-  .results-row{display:flex;flex-direction:column;gap:10px;}
-  .results-left{width:100%;}
+  .results-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;}
+  .results-left{flex:1 1 320px;max-width:calc(50% - 5px);min-width:260px;}
   .results-right{
-    width:100%;background:var(--panel2);border:1px solid var(--line);
+    flex:1 1 320px;max-width:calc(50% - 5px);min-width:260px;background:var(--panel2);border:1px solid var(--line);
     border-radius:6px;padding:10px;
   }
   .gauge{display:flex;align-items:baseline;gap:8px;justify-content:center;padding:4px 0 2px;}
@@ -550,48 +554,50 @@ function render(){
         <span class="tag">区間 ${i+1}</span>
       </div>
 
-      <div class="leg-row">
-        <div class="su-display">
-          <span class="su-label">S/U</span>
-          <span class="su-val" id="suval-${l.id}">--:--</span>
-        </div>
-        <div class="field">
-          <label>出頭時刻 <span class="small">(ADM 3.1.2.10)</span></label>
-          <div class="lead-box">
-            <input class="lead-h" type="number" min="0" max="9" step="1" value="${l.suLeadH}" onchange="updateLeg(${l.id},'suLeadH',this.value)">
-            <span class="plus">+</span>
-            <input class="lead-m" type="number" min="0" max="55" step="5" value="${l.suLeadM}" onchange="updateLeg(${l.id},'suLeadM',this.value)">
-            <div class="stp-stack">
-              <button class="stp-btn" onclick="stepLeadMinute(${l.id},5)">＋</button>
-              <button class="stp-btn" onclick="stepLeadMinute(${l.id},-5)">−</button>
+      <div class="leg-body">
+        <div class="leg-info">
+          <div class="leg-row">
+            <div class="su-display">
+              <span class="su-label">S/U</span>
+              <span class="su-val" id="suval-${l.id}">--:--</span>
             </div>
-            <span class="suffix">前</span>
+            <div class="field">
+              <label>出頭時刻 <span class="small">(ADM 3.1.2.10)</span></label>
+              <div class="lead-box">
+                <input class="lead-h" type="number" min="0" max="9" step="1" value="${l.suLeadH}" onchange="updateLeg(${l.id},'suLeadH',this.value)">
+                <span class="plus">+</span>
+                <input class="lead-m" type="number" min="0" max="55" step="5" value="${l.suLeadM}" onchange="updateLeg(${l.id},'suLeadM',this.value)">
+                <div class="stp-stack">
+                  <button class="stp-btn" onclick="stepLeadMinute(${l.id},5)">＋</button>
+                  <button class="stp-btn" onclick="stepLeadMinute(${l.id},-5)">−</button>
+                </div>
+                <span class="suffix">前</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div class="leg-row">
-        <div class="field">
-          <label>便名</label>
-          <input class="flightno" type="text" placeholder="便名" value="${l.flightNo||''}" onchange="updateLeg(${l.id},'flightNo',this.value)">
-        </div>
-        <div class="field">
-          <label>STD (UTC)</label>
-          <div style="display:flex;align-items:center;">
-            <input class="time-hi" type="time" value="${l.std}" onchange="updateLeg(${l.id},'std',this.value)"><span class="zsuffix">z</span>
+          <div class="leg-row">
+            <div class="field">
+              <label>便名</label>
+              <input class="flightno" type="text" placeholder="便名" value="${l.flightNo||''}" onchange="updateLeg(${l.id},'flightNo',this.value)">
+            </div>
+            <div class="field">
+              <label>STD (UTC)</label>
+              <div style="display:flex;align-items:center;">
+                <input class="time-hi" type="time" value="${l.std}" onchange="updateLeg(${l.id},'std',this.value)"><span class="zsuffix">z</span>
+              </div>
+            </div>
+            <span class="dash">-</span>
+            <div class="field">
+              <label>STA (UTC)</label>
+              <div style="display:flex;align-items:center;">
+                <input class="time-hi" type="time" value="${l.sta}" onchange="updateLeg(${l.id},'sta',this.value)"><span class="zsuffix">z</span>
+              </div>
+            </div>
           </div>
         </div>
-        <span class="dash">-</span>
-        <div class="field">
-          <label>STA (UTC)</label>
-          <div style="display:flex;align-items:center;">
-            <input class="time-hi" type="time" value="${l.sta}" onchange="updateLeg(${l.id},'sta',this.value)"><span class="zsuffix">z</span>
-          </div>
-        </div>
-      </div>
 
-      <div class="leg-row">
-        <div class="field-stack" style="width:100%;max-width:140px;">
+        <div class="field-stack leg-select-col">
           <div class="field compact">
             <label>種別</label>
             <select onchange="updateLeg(${l.id},'type',this.value)">
