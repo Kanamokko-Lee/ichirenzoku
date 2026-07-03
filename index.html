@@ -192,7 +192,6 @@
   .banner b{font-family:var(--mono);}
 
   .rr-title{font-size:11.5px;color:var(--muted);line-height:1.4;margin:0 0 6px;}
-  .rr-title #ataNote{color:var(--amber);}
   .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
   .eq-row{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;}
   .eq-row .stat{flex:1 1 0;min-width:0;}
@@ -277,7 +276,6 @@
     </div>
 
     <div class="results-right">
-      <p class="rr-title">上限超過時に必要な休養<br>（連続<span id="reqRestBase">--</span>h + WOCL加算<span id="reqRestWocl">--</span> + 時差加算<span id="reqRestTz">--</span>）<span id="ataNote"></span></p>
       <div class="field" style="margin-bottom:7px;">
         <label>ATA（区間1 実到着・遅延時のみ入力）</label>
         <div style="display:flex;align-items:center;">
@@ -288,16 +286,24 @@
           </div>
         </div>
       </div>
-      <div class="eq-row">
-        <div class="stat"><div class="stat-label">休養開始時刻</div><div class="stat-val" id="reqRestStart">--</div></div>
-        <div class="eq-sym">+</div>
-        <div class="stat"><div class="stat-label">必要休養時間（合計）</div><div class="stat-val" id="reqRestTotal">--</div></div>
-        <div class="eq-sym">=</div>
-        <div class="stat"><div class="stat-label">休養完了</div><div class="stat-val" id="reqRestUntil">--</div></div>
+
+      <div id="rrOk" class="banner ok" style="display:none;">
+        <b id="rrOkMsg">--</b>
       </div>
-      <div class="stat-row" style="margin-top:8px;">
-        <div class="stat"><div class="stat-label">次便 出頭可</div><div class="stat-val" id="reqNextSu">--</div></div>
-        <div class="stat"><div class="stat-label">次便 STD目安</div><div class="stat-val" id="reqNextStd">--</div></div>
+
+      <div id="rrExceeded" style="display:none;">
+        <p class="rr-title">上限超過時に必要な休養<br>（連続<span id="reqRestBase">--</span>h + WOCL加算<span id="reqRestWocl">--</span> + 時差加算<span id="reqRestTz">--</span>）</p>
+        <div class="eq-row">
+          <div class="stat"><div class="stat-label">休養開始時刻</div><div class="stat-val" id="reqRestStart">--</div></div>
+          <div class="eq-sym">+</div>
+          <div class="stat"><div class="stat-label">必要休養時間（合計）</div><div class="stat-val" id="reqRestTotal">--</div></div>
+          <div class="eq-sym">=</div>
+          <div class="stat"><div class="stat-label">休養完了</div><div class="stat-val" id="reqRestUntil">--</div></div>
+        </div>
+        <div class="stat-row" style="margin-top:8px;">
+          <div class="stat"><div class="stat-label">次便 出頭可</div><div class="stat-val" id="reqNextSu">--</div></div>
+          <div class="stat"><div class="stat-label">次便 STD目安</div><div class="stat-val" id="reqNextStd">--</div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -774,38 +780,56 @@ function updateResults(){
   const restH = parseFloat(document.getElementById('restType').value)||11;
 
   // ATA上書き（区間1が実際に遅延して到着した場合の what-if）
-  const ataVal = ataOverrideVal;
+  // ATAは常にleg1のSTAと同期がとれているため、通常時はATAシナリオ＝実際の計算と一致する。
+  // ATAを動かすと、区間2のS/Uが変わらない前提で休養(ギャップ)時間だけが縮み、
+  // その結果FDPと上限との余裕がどう変化するかを再計算する。
   const leg1 = r.resolved[0];
-  let restStart, woclSegStart, woclSegEnd, ataNoteText='';
-  if(ataVal && leg1 && leg1.suCursor!==null){
-    const ataCursor = advance(ataVal, leg1.stdCursor!==null?leg1.stdCursor:leg1.suCursor);
+  const leg2 = r.resolved[1];
+  let ataScenario = null;
+  if(ataOverrideVal && leg1 && leg2 && leg1.suCursor!==null && leg2.suCursor!==null && leg2.staCursor!==null){
+    const ataCursor = advance(ataOverrideVal, leg1.stdCursor!==null?leg1.stdCursor:leg1.suCursor);
     const ataBusinessEnd = ataCursor + leg1.bufferMin;
-    restStart = ataBusinessEnd;
-    woclSegStart = leg1.suCursor;
-    woclSegEnd = ataCursor;
-    if(ataVal !== (legs[0] && legs[0].sta)){
-      ataNoteText = ' — ATA基準（区間1が' + fmtClock(ataCursor) + 'に実着陸した場合）';
+    const gapDur = leg2.suCursor - ataBusinessEnd;
+    const restOffset = gapRestOffset[0]!==undefined ? gapRestOffset[0] : r.offset;
+    const tzDiffOk = Math.abs(restOffset - r.offset) <= 2;
+    const nightCoverage = localNightMaxCoverage(ataBusinessEnd, leg2.suCursor, restOffset);
+    const nightOk = nightCoverage>=8*60 && gapDur>=10*60;
+    let ded = 0;
+    if(gapDur>=3*60){
+      ded = (gapDur>=10*60 && nightOk && tzDiffOk && !gapForceHalf[0]) ? gapDur : gapDur/2;
     }
-  } else {
-    restStart = r.last.businessEndCursor;
-    woclSegStart = null; // 下のデフォルト計算(複数区間合算)を使う
+    const totalSpanAta = leg2.staCursor - leg1.suCursor;
+    const fdpAfterAta = totalSpanAta - ded;
+    const bandAta = localBand(leg1.suCursor, r.offset);
+    const limitsAta = FDP_TABLE[bandAta][Math.min(Math.max(r.landings,2),6)] || FDP_TABLE[bandAta][2];
+    const fdpLimitAta = limitsAta[1];
+    ataScenario = {
+      ataCursor, restStart: ataBusinessEnd,
+      margin: fdpLimitAta - fdpAfterAta
+    };
   }
 
-  // WOCL判定は「勤務時間」のみが対象。休養(ギャップ)区間は勤務ではないため除外し、
-  // 各区間の実勤務(S/U〜業務終了/最終区間はSTA)だけを対象にWOCLとの重なりを合算する。
-  let woclMinutesTotal = 0;
-  if(woclSegStart!==null){
-    woclMinutesTotal = overlapsWOCL(woclSegStart, woclSegEnd, r.offset).minutes;
-  } else {
-    r.resolved.forEach((l,i)=>{
-      const segStart = l.suCursor;
-      const segEnd = (i===r.resolved.length-1) ? l.staCursor : l.businessEndCursor;
-      if(segStart!==null && segEnd!==null){
-        const w = overlapsWOCL(segStart, segEnd, r.offset);
-        woclMinutesTotal += w.minutes;
-      }
-    });
+  const rrOk = document.getElementById('rrOk');
+  const rrExceeded = document.getElementById('rrExceeded');
+
+  if(!ataScenario || ataScenario.margin>=0){
+    rrOk.style.display='block';
+    rrExceeded.style.display='none';
+    const m = ataScenario ? Math.round(ataScenario.margin) : Math.round(margin);
+    document.getElementById('rrOkMsg').textContent =
+      `この到着時刻でも一連続勤務は成立します（あと${m}分の余裕）`;
+    saveState();
+    return;
   }
+
+  rrOk.style.display='none';
+  rrExceeded.style.display='block';
+  const restStart = ataScenario.restStart;
+
+  // WOCL判定は「勤務時間」のみが対象。休養(ギャップ)区間は勤務ではないため除外し、
+  // 区間1(S/U〜ATA)と区間2(S/U〜STA)の実勤務だけを対象にWOCLとの重なりを合算する。
+  let woclMinutesTotal = overlapsWOCL(leg1.suCursor, ataScenario.ataCursor, r.offset).minutes
+                        + overlapsWOCL(leg2.suCursor, leg2.staCursor, r.offset).minutes;
   let woclAdd = 0;
   if(woclMinutesTotal>0) woclAdd = woclMinutesTotal>=120 ? 240 : 120;
 
@@ -819,7 +843,6 @@ function updateResults(){
 
   const restUntil = restStart + restH*60 + woclAdd + tzAdd;
   const nextLead = parseFloat(document.getElementById('nextLead').value)||0;
-  document.getElementById('ataNote').textContent = ataNoteText;
   document.getElementById('reqRestStart').textContent = fmtClock(restStart);
   document.getElementById('reqRestBase').textContent = restH;
   document.getElementById('reqRestWocl').textContent = woclAdd?fmtHM(woclAdd):'0+00';
