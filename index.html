@@ -178,9 +178,9 @@
   .lead-box input[type=number]:focus{outline:none;}
   .lead-box .plus{color:var(--muted);font-family:var(--mono);font-size:15px;}
   .lead-box .suffix{color:var(--muted);font-size:12px;margin-left:2px;}
-  .gap-line{margin-bottom:4px;font-size:14px;}
-  .gap-line b{font-family:var(--mono);color:var(--text);font-weight:700;font-size:17px;}
-  .gap .dur{font-family:var(--mono);color:var(--purple);font-size:15px;}
+  .gap-line{margin-bottom:4px;font-size:17px;}
+  .gap-line b{font-family:var(--mono);color:var(--text);font-weight:800;font-size:26px;}
+  .gap .dur{font-family:var(--mono);color:var(--purple);font-size:26px;font-weight:800;}
   .gap-bottom{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
   .gap-elig{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:5px;}
   .badge{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:10px;border:1px solid var(--line);}
@@ -318,7 +318,7 @@
     </div>
 
     <div class="results-right">
-      <p class="note" style="margin:0 0 7px;">ATD（実出発）・ATA（実到着）は、各区間の STD / STA の下で入力します。ATDを変えると、その分だけ STA も自動でずれます。</p>
+      <p class="note" style="margin:0 0 7px;">ATD（実出発）・ATA（実到着）は、各区間の STD / STA の下で入力します。ATDを変更しても STA は変わりません。</p>
 
       <div id="rrOk" class="banner ok" style="display:none;">
         <b id="rrOkMsg">--</b>
@@ -576,23 +576,12 @@ const LEG_NAMES = ['行き','帰り'];
 function hhmmToMin(v){ if(!v) return null; const [h,m]=v.split(':').map(Number); return h*60+m; }
 function minToHhmm(mins){ const m=((mins%1440)+1440)%1440; return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; }
 function shiftHhmm(v, delta){ const base=hhmmToMin(v); return base===null? v : minToHhmm(base+delta); }
-// ATD（実出発）を変えたら、その差分と同じ分だけ STA（とATA）もずらす
+// ATD（実出発）は実績時刻の記録専用。変更しても STA / ATA は変更しない（2026-11-22 ユーザー指示で連動を廃止）
 function setAtd(legId, val){
   const leg = legs.find(l=>l.id===legId);
-  if(!leg || !val) return;
-  const prev = leg.atd || leg.std;
-  const prevMin = hhmmToMin(prev), newMin = hhmmToMin(val);
-  if(prevMin===null || newMin===null){ leg.atd = val; render(); return; }
-  let delta = newMin - prevMin;
-  if(delta > 720) delta -= 1440;
-  if(delta < -720) delta += 1440;
-  leg.atd = val;
-  if(delta!==0){
-    if(leg.sta) leg.sta = shiftHhmm(leg.sta, delta);
-    leg.ata = shiftHhmm(leg.ata || leg.sta, delta);
-  }
-  if(legs[0] && legId===legs[0].id) ataOverrideVal = leg.ata || '';
-  render();
+  if(!leg) return;
+  leg.atd = val || '';
+  updateResults();
 }
 // ATA（実到着）: 行きのATAは従来どおり休養・余裕の再計算に使う
 function setAta(legId, val){
