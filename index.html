@@ -110,9 +110,9 @@
     border:1px solid var(--line);border-radius:6px;padding:10px;background:var(--panel2);
     width:100%;
   }
-  /* STD / STA: big */
+  /* STD / STA: smart size (readable but not oversized) */
   input[type=time].time-big{
-    font-size:28px;font-weight:800;height:50px;text-align:center;min-width:140px;letter-spacing:.02em;
+    font-size:24px;font-weight:800;height:44px;text-align:center;width:148px;min-width:0;letter-spacing:.02em;
   }
   /* iOS Safari inflates time inputs: trim its internal margins/line-height */
   input[type=time]{line-height:1.15;}
@@ -124,7 +124,7 @@
   .gap-times b{font-family:var(--mono);color:var(--text);font-weight:800;font-size:26px;white-space:nowrap;}
   /* ATD / ATA: under STD / STA, medium */
   input[type=time].time-actual{
-    font-size:19px;font-weight:700;height:42px;text-align:center;min-width:120px;color:var(--amber);
+    font-size:19px;font-weight:700;height:42px;text-align:center;width:132px;min-width:0;color:var(--amber);
   }
   input[type=time].time-actual.ata{color:var(--red);}
   .stdsta-row{display:flex;gap:10px;align-items:flex-end;}
@@ -261,8 +261,8 @@
     .stdsta-row{gap:6px;}
     .stdsta-row .dash{font-size:16px;padding-bottom:10px;}
     .stdsta-row .zsuffix{display:none;}
-    input[type=time].time-big{font-size:23px;height:44px;min-width:0;padding:0 2px;}
-    input[type=time].time-actual{font-size:17px;height:36px;min-width:0;padding:0 2px;}
+    input[type=time].time-big{font-size:20px;height:38px;width:118px;min-width:0;padding:0 2px;}
+    input[type=time].time-actual{font-size:17px;height:36px;width:106px;min-width:0;padding:0 2px;}
     .leg-row{padding:4px 0;}
     .su-compact{gap:6px;}
     .lead-drum select{min-width:50px;height:27px;font-size:12px;}
@@ -784,7 +784,10 @@ function render(){
           </div>
           <label class="checkline"><input type="checkbox" ${gapForceHalf[i]?'checked':''} onchange="setForceHalf(${i},this.checked)">自動判定無視・半分減算固定</label>
         </div>`;
-      wrap.appendChild(gapDiv);
+      // 休養ボックスは「行き」と「帰り」の間に配置する
+      const nextLegEl = legsRow.children[i+1];
+      if(nextLegEl) legsRow.insertBefore(gapDiv, nextLegEl);
+      else legsRow.appendChild(gapDiv);
     }
   });
 
