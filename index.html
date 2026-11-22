@@ -357,7 +357,7 @@
     </div>
 
     <div class="results-right">
-      <p class="note" style="margin:0 0 7px;">ATD（実出発）・ATA（実到着）は、各区間の STD / STA の下で入力します。ATDを変更しても STA は変わりません。</p>
+      <p class="note" style="margin:0 0 7px;">ATD（実出発）・ATA（実到着）は、各区間の STD / STA の下で入力します。ATDを変更しても STA は変わりません。休養開始・休養時間・余裕は ATA（実到着）基準で計算します（ATAがSTAと同じ場合は予定どおりの計算です）。</p>
 
       <div id="rrOk" class="banner ok" style="display:none;">
         <b id="rrOkMsg">--</b>
@@ -578,13 +578,16 @@ function compute(){
     const leadMin = (parseFloat(l.suLeadH)||0)*60 + (parseFloat(l.suLeadM)||0);
     const suCursor = stdCursor!==null ? stdCursor - leadMin : null;
     const staCursor = advance(l.sta, stdCursor!==null?stdCursor:(suCursor||0));
+    // 実効到着 = ATA（実到着）。STAは時刻表の予定時刻なので計算の基準にしない。
+    // ATAがSTAと同じ（未変更）の場合は従来どおり予定時刻での計算になる。
+    const effStaCursor = advance(l.ata || l.sta, stdCursor!==null?stdCursor:(suCursor||0));
     let bufferMin = 30;
     if(l.arrAirport==='HND_NRT') bufferMin = l.customs==='YES'?BUFFER.HND_NRT_YES:BUFFER.HND_NRT_NO;
     else if(l.arrAirport==='OSAKA_NAGOYA') bufferMin = l.customs==='YES'?BUFFER.OSAKA_NAGOYA_YES:BUFFER.OTHER_NO;
     else bufferMin = l.customs==='YES'?BUFFER.OTHER_YES:BUFFER.OTHER_NO;
-    const businessEndCursor = staCursor!==null ? staCursor+bufferMin : null;
+    const businessEndCursor = effStaCursor!==null ? effStaCursor+bufferMin : null;
 
-    resolved.push({...l, stdCursor, suCursor, staCursor, bufferMin, businessEndCursor});
+    resolved.push({...l, stdCursor, suCursor, staCursor, effStaCursor, bufferMin, businessEndCursor});
     cursor = businessEndCursor!==null?businessEndCursor:cursor;
   });
 
@@ -592,7 +595,7 @@ function compute(){
   const landings = revLegs.length;
   const first = resolved[0];
   const last = resolved[resolved.length-1];
-  if(first.suCursor===null || last.staCursor===null) return {resolved, incomplete:true};
+  if(first.suCursor===null || last.staCursor===null || last.effStaCursor===null) return {resolved, incomplete:true};
 
   const gaps = [];
   for(let i=0;i<resolved.length-1;i++){
@@ -873,7 +876,7 @@ function updateResults(){
     }
   }
 
-  const totalSpan = r.last.staCursor - r.first.suCursor;
+  const totalSpan = r.last.effStaCursor - r.first.suCursor; // 終端はATA（実到着）基準
   const fdpAfter = totalSpan - totalDeduction;
   const band = localBand(r.first.suCursor, r.offset);
   const limits = FDP_TABLE[band][Math.min(Math.max(r.landings,2),6)] || FDP_TABLE[band][2];
@@ -933,8 +936,8 @@ function updateResults(){
   if(margin>=0 && blockOk && isStayPattern){
     // ステイ扱い時は各区間を独立した一連続勤務として検証（着陸1回→表の「2回以下」列を適用）
     const legChecks = r.resolved.map((l,i)=>{
-      if(l.suCursor===null || l.staCursor===null || l.stdCursor===null) return null;
-      const fdpLeg = l.staCursor - l.suCursor;
+      if(l.suCursor===null || l.staCursor===null || l.stdCursor===null || l.effStaCursor===null) return null;
+      const fdpLeg = l.effStaCursor - l.suCursor;
       const blkLeg = l.staCursor - l.stdCursor;
       const bandLeg = localBand(l.suCursor, r.offset);
       const limLeg = FDP_TABLE[bandLeg][2];
@@ -953,53 +956,27 @@ function updateResults(){
     bannerStay.style.display='none';
   }
 
-  // ATA上書き（区間1が実際に遅延して到着した場合の what-if）
-  // ATAは常にleg1のSTAと同期がとれているため、通常時はATAシナリオ＝実際の計算と一致する。
-  // ATAを動かすと、区間2のS/Uが変わらない前提で休養(ギャップ)時間だけが縮み、
-  // その結果FDPと上限との余裕がどう変化するかを再計算する。
+  // 休養・余裕はすべてATA（実到着）基準で計算済み（compute の effStaCursor / businessEndCursor）。
+  // 従来の「STA基準の本計算＋ATAシナリオの別計算」は廃止し、ここでは本計算の結果だけを使う。
   const leg1 = r.resolved[0];
   const leg2 = r.resolved[1];
-  let ataScenario = null;
-  if(ataOverrideVal && leg1 && leg2 && leg1.suCursor!==null && leg2.suCursor!==null && leg2.staCursor!==null){
-    const ataCursor = advance(ataOverrideVal, leg1.stdCursor!==null?leg1.stdCursor:leg1.suCursor);
-    const ataBusinessEnd = ataCursor + leg1.bufferMin;
-    const gapDur = leg2.suCursor - ataBusinessEnd;
-    const restOffset = gapRestOffset[0]!==undefined ? gapRestOffset[0] : r.offset;
-    const tzDiffOk = Math.abs(restOffset - r.offset) <= 2;
-    const nightCoverage = localNightMaxCoverage(ataBusinessEnd, leg2.suCursor, restOffset);
-    const nightOk = nightCoverage>=8*60 && gapDur>=10*60;
-    let ded = 0;
-    if(gapDur>=3*60){
-      ded = (gapDur>=10*60 && nightOk && tzDiffOk && !gapForceHalf[0]) ? gapDur : gapDur/2;
-    }
-    const totalSpanAta = leg2.staCursor - leg1.suCursor;
-    const fdpAfterAta = totalSpanAta - ded;
-    const bandAta = localBand(leg1.suCursor, r.offset);
-    const limitsAta = FDP_TABLE[bandAta][Math.min(Math.max(r.landings,2),6)] || FDP_TABLE[bandAta][2];
-    const fdpLimitAta = limitsAta[1];
-    ataScenario = {
-      ataCursor, restStart: ataBusinessEnd,
-      margin: fdpLimitAta - fdpAfterAta,
-      isStay: gapDur >= restH*60
-    };
-  }
 
   const rrOk = document.getElementById('rrOk');
   const rrExceeded = document.getElementById('rrExceeded');
 
-  if(!ataScenario || ataScenario.margin>=0){
-    rrOk.style.display='block';
+  if(margin>=0){
     rrExceeded.style.display='none';
-    const m = ataScenario ? Math.round(ataScenario.margin) : Math.round(margin);
-    if(ataScenario && ataScenario.isStay){
-      document.getElementById('rrOkMsg').textContent =
-        `この到着時刻では休養が所要休養（${restH}h）以上のため、ステイパターンとして成立します`;
-    } else if(margin>=0 && isStayPattern && !ataScenario){
-      document.getElementById('rrOkMsg').textContent =
-        `ステイパターンとして成立します`;
+    if(blockOk){
+      rrOk.style.display='block';
+      if(isStayPattern){
+        document.getElementById('rrOkMsg').textContent =
+          `この到着時刻では休養が所要休養（${restH}h）以上のため、ステイパターンとして成立します`;
+      } else {
+        document.getElementById('rrOkMsg').textContent =
+          `ATA基準で一連続勤務は成立します（あと${Math.round(margin)}分の余裕）`;
+      }
     } else {
-      document.getElementById('rrOkMsg').textContent =
-        `この到着時刻でも一連続勤務は成立します（あと${m}分の余裕）`;
+      rrOk.style.display='none';
     }
     saveState();
     return;
@@ -1007,7 +984,7 @@ function updateResults(){
 
   rrOk.style.display='none';
   rrExceeded.style.display='block';
-  const restStart = ataScenario.restStart;
+  const restStart = leg1.businessEndCursor; // ATA＋業務終了バフ = 休養開始
 
   // WOCL判定（第17条1項(2)）は上限超過で中断された時点までの「勤務時間」が対象。
   // 上限超過時、一連続勤務は区間1の到着で中断され区間2はまだ飛んでいないため、
