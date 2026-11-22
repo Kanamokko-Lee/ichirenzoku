@@ -112,8 +112,16 @@
   }
   /* STD / STA: big */
   input[type=time].time-big{
-    font-size:28px;font-weight:800;height:56px;text-align:center;min-width:140px;letter-spacing:.02em;
+    font-size:28px;font-weight:800;height:50px;text-align:center;min-width:140px;letter-spacing:.02em;
   }
+  /* iOS Safari inflates time inputs: trim its internal margins/line-height */
+  input[type=time]{line-height:1.15;}
+  input[type=time]::-webkit-date-and-time-value{margin:0;text-align:center;}
+  input[type=time]::-webkit-datetime-edit{padding:0;}
+  /* gap (rest) times: two columns so big text never wraps mid-line */
+  .gap-times{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-bottom:5px;}
+  .gap-times .gap-cap{display:block;font-size:12px;color:var(--muted);margin-bottom:1px;}
+  .gap-times b{font-family:var(--mono);color:var(--text);font-weight:800;font-size:26px;white-space:nowrap;}
   /* ATD / ATA: under STD / STA, medium */
   input[type=time].time-actual{
     font-size:19px;font-weight:700;height:42px;text-align:center;min-width:120px;color:var(--amber);
@@ -241,6 +249,37 @@
   table.ref th, table.ref td{border:1px solid var(--line);padding:3px 4px;text-align:center;}
   table.ref th{color:var(--amber);background:#0d1216;font-weight:400;}
   footer{text-align:center;color:var(--muted);font-size:11px;margin-top:10px;line-height:1.6;}
+
+  /* ===== iPhone / narrow screens: compact layout ===== */
+  @media (max-width:640px){
+    body{padding:6px;font-size:14px;}
+    section{padding:8px;margin-bottom:6px;}
+    .leg{padding:8px;}
+    .leg-head{margin-bottom:4px;}
+    .flightno{width:104px !important;height:30px;font-size:13px !important;}
+    .field label{font-size:11px;}
+    .stdsta-row{gap:6px;}
+    .stdsta-row .dash{font-size:16px;padding-bottom:10px;}
+    .stdsta-row .zsuffix{display:none;}
+    input[type=time].time-big{font-size:23px;height:44px;min-width:0;padding:0 2px;}
+    input[type=time].time-actual{font-size:17px;height:36px;min-width:0;padding:0 2px;}
+    .leg-row{padding:4px 0;}
+    .su-compact{gap:6px;}
+    .lead-drum select{min-width:50px;height:27px;font-size:12px;}
+    .mini-row{gap:8px;}
+    .gap{padding:7px;}
+    .gap-times b{font-size:23px;}
+    .gap .dur{font-size:23px;}
+    .gap-line{font-size:15px;}
+    .gap-elig{font-size:12px;gap:5px;}
+    .gap-elig .badge{font-size:10px;}
+    .gap-elig input[type=number]{width:42px;height:30px;font-size:14px;}
+    .results-left{min-width:0;}
+    .results-right{min-width:0;padding:8px;}
+    .gauge .big{font-size:32px;}
+    .stat .stat-val{font-size:18px;}
+    .pattern-bar input[type=text]{width:130px;}
+  }
 </style>
 </head>
 <body>
@@ -723,7 +762,10 @@ function render(){
       const globalOff = parseFloat(document.getElementById('offset')?.value)||9;
       const offVal = gapRestOffset[i]!==undefined?gapRestOffset[i]:globalOff;
       gapDiv.innerHTML = `
-        <div class="gap-line">休養開始: <b id="gapstart-${i}">--:--</b> 〜 休養終了: <b id="gapend-${i}">--:--</b></div>
+        <div class="gap-times">
+          <div><span class="gap-cap">休養開始</span><b id="gapstart-${i}">--:--</b></div>
+          <div><span class="gap-cap">休養終了</span><b id="gapend-${i}">--:--</b></div>
+        </div>
         <div class="gap-line gap-bottom">
           休養時間: <span class="dur" id="gapdur-${i}">--+--</span>
         </div>
