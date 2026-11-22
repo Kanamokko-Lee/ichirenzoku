@@ -129,6 +129,15 @@
   input[type=time].time-actual.ata{color:var(--red);}
   .stdsta-row{display:flex;gap:10px;align-items:flex-end;}
   .stdsta-row .field{flex:1 1 0;}
+  /* STD / STA / ATD / ATA: one row, evenly distributed across the width */
+  .times-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end;}
+  .times-row .field{min-width:0;}
+  .times-row input[type=time].time-big{width:100%;font-size:21px;height:42px;}
+  .times-row input[type=time].time-actual{width:100%;font-size:18px;height:38px;}
+  .times-row .field label{text-align:center;display:block;}
+  /* rest box: start/end centered in equal columns, duration centered */
+  .gap-times{text-align:center;}
+  .gap-line.gap-bottom{justify-content:center;text-align:center;}
   .stdsta-row .dash{font-size:22px;padding-bottom:12px;}
   /* 出頭 (lead): quiet, drum-style selects */
   .lead-drum{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);}
@@ -279,6 +288,10 @@
     .gauge .big{font-size:32px;}
     .stat .stat-val{font-size:18px;}
     .pattern-bar input[type=text]{width:130px;}
+    .times-row{gap:5px;}
+    .times-row input[type=time].time-big{font-size:16px;height:36px;}
+    .times-row input[type=time].time-actual{font-size:14px;height:33px;}
+    .times-row .field label{font-size:10px;white-space:nowrap;}
   }
 </style>
 </head>
@@ -296,10 +309,6 @@
   </div>
 </div>
 
-<div class="disclaimer">
-  個人用の参照ツールです。会社の正式な乗務割・BRICの判定に優先するものではありません。時差順応地域の判定（OM 5.8.2.1）や不測の事態への対応（5.8.3.6）はPIC判断事項のため自動判定していません。業務終了バフ値はOM未明記のため就業規程第22条参照の推定値です。<br>
-  入力内容はこの端末のブラウザに自動保存され、次回開いたときに復元されます（他の端末とは同期されません）。
-</div>
 
 <!-- 基本設定：非表示（固定値として保持。必要なら再表示可能） -->
 <div style="display:none;">
@@ -693,35 +702,22 @@ function render(){
         <input class="flightno" type="text" placeholder="便名" value="${l.flightNo||''}" onchange="updateLeg(${l.id},'flightNo',this.value)">
       </div>
 
-      <div class="stdsta-row">
+      <div class="times-row">
         <div class="field">
-          <label>STD (UTC)</label>
-          <div style="display:flex;align-items:center;">
-            <input class="time-hi time-big" type="time" value="${l.std}" onchange="updateLeg(${l.id},'std',this.value)"><span class="zsuffix">z</span>
-          </div>
+          <label>STD</label>
+          <input class="time-hi time-big" type="time" value="${l.std}" onchange="updateLeg(${l.id},'std',this.value)">
         </div>
-        <span class="dash">-</span>
         <div class="field">
-          <label>STA (UTC)</label>
-          <div style="display:flex;align-items:center;">
-            <input class="time-hi time-big" type="time" value="${l.sta}" onchange="updateLeg(${l.id},'sta',this.value)"><span class="zsuffix">z</span>
-          </div>
+          <label>STA</label>
+          <input class="time-hi time-big" type="time" value="${l.sta}" onchange="updateLeg(${l.id},'sta',this.value)">
         </div>
-      </div>
-
-      <div class="stdsta-row" style="margin-top:6px;">
         <div class="field">
-          <label>ATD (実出発)</label>
-          <div style="display:flex;align-items:center;">
-            <input class="time-actual" type="time" value="${l.atd || l.std || ''}" onchange="setAtd(${l.id},this.value)"><span class="zsuffix">z</span>
-          </div>
+          <label>ATD</label>
+          <input class="time-actual" type="time" value="${l.atd || l.std || ''}" onchange="setAtd(${l.id},this.value)">
         </div>
-        <span class="dash" style="padding-bottom:8px;">-</span>
         <div class="field">
-          <label>ATA (実到着)</label>
-          <div style="display:flex;align-items:center;">
-            <input class="time-actual ata" type="time" value="${l.ata || l.sta || ''}" onchange="setAta(${l.id},this.value)"><span class="zsuffix">z</span>
-          </div>
+          <label>ATA</label>
+          <input class="time-actual ata" type="time" value="${l.ata || l.sta || ''}" onchange="setAta(${l.id},this.value)">
         </div>
       </div>
 
