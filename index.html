@@ -132,10 +132,18 @@
   /* STD / STA on row 1, ATD / ATA on row 2: two evenly distributed columns with a dash */
   .times2-row{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end;}
   .times2-row + .times2-row{margin-top:6px;}
-  .times2-row .field{min-width:0;}
-  .times2-row .dash{color:var(--muted);font-size:18px;padding-bottom:11px;}
-  .times2-row input[type=time].time-big{width:100%;font-size:23px;height:44px;}
-  .times2-row input[type=time].time-actual{width:100%;font-size:19px;height:38px;}
+  .times2-row .field{min-width:0;display:flex;flex-direction:column;align-items:center;}
+  .times2-row .dash{color:var(--muted);font-size:30px;font-weight:800;padding-bottom:6px;}
+  .times2-row input[type=time].time-big{width:118px;font-size:23px;height:44px;}
+  .times2-row input[type=time].time-actual{width:106px;font-size:19px;height:38px;}
+  /* rest box: one row - start - end .... duration on the right */
+  .gap-times2{display:flex;align-items:center;gap:8px;}
+  .gap-times2 .gap-cap{display:block;}
+  .gap-times2 b{font-family:var(--mono);color:var(--text);font-weight:800;font-size:24px;white-space:nowrap;}
+  .gap-times2 .gap-dash{color:var(--muted);font-size:24px;font-weight:800;}
+  .gap-times2 .gap-dur-cell{margin-left:auto;text-align:right;}
+  /* sign-up / arrival airport / customs: one compact row */
+  .meta-row{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;margin-top:8px;}
   /* rest box: start/end centered in equal columns, duration centered */
   .gap-times{text-align:center;}
   .gap-line.gap-bottom{justify-content:center;text-align:center;}
@@ -290,9 +298,14 @@
     .stat .stat-val{font-size:18px;}
     .pattern-bar input[type=text]{width:130px;}
     .times2-row{gap:6px;}
-    .times2-row .dash{padding-bottom:9px;}
-    .times2-row input[type=time].time-big{font-size:20px;height:40px;}
-    .times2-row input[type=time].time-actual{font-size:17px;height:36px;}
+    .times2-row .dash{font-size:26px;padding-bottom:5px;}
+    .times2-row input[type=time].time-big{width:102px;font-size:20px;height:40px;}
+    .times2-row input[type=time].time-actual{width:94px;font-size:17px;height:36px;}
+    .gap-times2{gap:5px;}
+    .gap-times2 b{font-size:19px;}
+    .gap-times2 .gap-dash{font-size:20px;}
+    .meta-row{gap:4px 8px;}
+    .meta-row .lead-drum select{width:42px;padding:0 2px;}
   }
 </style>
 </head>
@@ -708,7 +721,7 @@ function render(){
           <label>STD</label>
           <input class="time-hi time-big" type="time" value="${l.std}" onchange="updateLeg(${l.id},'std',this.value)">
         </div>
-        <span class="dash">-</span>
+        <span class="dash">－</span>
         <div class="field">
           <label>STA</label>
           <input class="time-hi time-big" type="time" value="${l.sta}" onchange="updateLeg(${l.id},'sta',this.value)">
@@ -720,14 +733,14 @@ function render(){
           <label>ATD</label>
           <input class="time-actual" type="time" value="${l.atd || l.std || ''}" onchange="setAtd(${l.id},this.value)">
         </div>
-        <span class="dash">-</span>
+        <span class="dash">－</span>
         <div class="field">
           <label>ATA</label>
           <input class="time-actual ata" type="time" value="${l.ata || l.sta || ''}" onchange="setAta(${l.id},this.value)">
         </div>
       </div>
 
-      <div class="leg-row">
+      <div class="meta-row">
         <div class="su-compact">
           <span class="su-label">S/U</span>
           <span class="su-val" id="suval-${l.id}">--:--</span>
@@ -737,9 +750,6 @@ function render(){
             <select onchange="updateLeg(${l.id},'suLeadM',this.value)">${leadOpts(l.suLeadM,55,5)}</select>分前
           </span>
         </div>
-      </div>
-
-      <div class="mini-row">
         <div class="field-inline">
           <label>到着空港</label>
           <select onchange="updateLeg(${l.id},'arrAirport',this.value)">
@@ -767,23 +777,14 @@ function render(){
       const globalOff = parseFloat(document.getElementById('offset')?.value)||9;
       const offVal = gapRestOffset[i]!==undefined?gapRestOffset[i]:globalOff;
       gapDiv.innerHTML = `
-        <div class="gap-times">
+        <div class="gap-times2">
           <div><span class="gap-cap">休養開始</span><b id="gapstart-${i}">--:--</b></div>
+          <span class="gap-dash">－</span>
           <div><span class="gap-cap">休養終了</span><b id="gapend-${i}">--:--</b></div>
-        </div>
-        <div class="gap-line gap-bottom">
-          休養時間: <span class="dur" id="gapdur-${i}">--+--</span>
+          <div class="gap-dur-cell"><span class="gap-cap">休養時間</span><b id="gapdur-${i}">--+--</b></div>
         </div>
         <div class="gap-elig">
           <span class="badge" id="gapbadge-${i}">--</span>
-          <span>休養地UTCオフセット</span>
-          <div class="stepper">
-            <input type="number" id="gapoffset-${i}" step="0.5" value="${offVal}" onchange="setGapOffset(${i},this.value)">
-            <div class="stp-stack">
-              <button class="stp-btn" onclick="stepGapOffset(${i},0.5)">＋</button>
-              <button class="stp-btn" onclick="stepGapOffset(${i},-0.5)">−</button>
-            </div>
-          </div>
           <label class="checkline"><input type="checkbox" ${gapForceHalf[i]?'checked':''} onchange="setForceHalf(${i},this.checked)">自動判定無視・半分減算固定</label>
         </div>`;
       // 休養ボックスは「行き」と「帰り」の間に配置する
