@@ -104,12 +104,49 @@
   .field-stack{display:flex;flex-direction:column;gap:4px;}
   .flightno{width:82px !important;font-size:14px !important;padding:5px 6px !important;}
 
-  /* legs: side by side */
-  .legs-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:7px;}
+  /* legs: stacked vertically (行き on top, 帰り below) */
+  .legs-row{display:flex;flex-direction:column;gap:8px;margin-bottom:7px;}
   .leg{
-    border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--panel2);
-    flex:1 1 300px;min-width:270px;
+    border:1px solid var(--line);border-radius:6px;padding:10px;background:var(--panel2);
+    width:100%;
   }
+  /* STD / STA: big */
+  input[type=time].time-big{
+    font-size:28px;font-weight:800;height:56px;text-align:center;min-width:140px;letter-spacing:.02em;
+  }
+  /* ATD / ATA: under STD / STA, medium */
+  input[type=time].time-actual{
+    font-size:19px;font-weight:700;height:42px;text-align:center;min-width:120px;color:var(--amber);
+  }
+  input[type=time].time-actual.ata{color:var(--red);}
+  .stdsta-row{display:flex;gap:10px;align-items:flex-end;}
+  .stdsta-row .field{flex:1 1 0;}
+  .stdsta-row .dash{font-size:22px;padding-bottom:12px;}
+  /* 出頭 (lead): quiet, drum-style selects */
+  .lead-drum{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);}
+  .lead-drum select{
+    width:auto;min-width:58px;height:28px;font-size:13px;padding:2px 4px;color:var(--muted);
+  }
+  .su-compact{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .su-compact .su-val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green);}
+  .su-compact .su-label{font-size:11px;color:var(--muted);}
+  /* 到着空港 / 通関: small */
+  .mini-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:2px;}
+  .mini-row .field-inline label{font-size:10px;min-width:0;color:#5f6d77;}
+  .mini-row .field-inline select{font-size:11px;height:24px;padding:1px 4px;min-width:0;width:auto;color:var(--muted);}
+  /* pattern save bar */
+  .pattern-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;}
+  .pattern-bar input[type=text]{width:150px;height:32px;font-size:13px;font-family:var(--sans);}
+  .pattern-bar button{
+    background:var(--panel2);border:1px solid var(--amber-dim);color:var(--amber);
+    font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;
+  }
+  .pattern-chip{
+    display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:12px;
+    padding:3px 6px 3px 10px;font-size:12px;color:var(--text);background:#0d1216;
+  }
+  .pattern-chip button{border:none;background:none;color:var(--amber);cursor:pointer;font-size:12px;padding:2px 4px;}
+  .pattern-chip button.del{color:var(--red);}
   .leg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
   .leg-head .tag{font-family:var(--mono);font-size:13px;color:var(--amber);letter-spacing:.04em;}
 
@@ -124,7 +161,7 @@
   .leg-row:first-of-type{border-top:none;padding-top:0;}
   .su-display{display:flex;flex-direction:column;gap:2px;min-width:74px;}
   .su-display .su-label{font-size:11px;color:var(--muted);line-height:1.3;}
-  .su-display .su-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green);line-height:1.2;}
+  .su-display .su-val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green);line-height:1.2;}
   .dash{color:var(--muted);align-self:center;}
 
   .gap{
@@ -238,6 +275,12 @@
 <!-- ==== 1. 乗務区間 ==== -->
 <section>
   <p class="sec-title"><span class="num">01</span> 乗務区間（すべてUTC入力）</p>
+  <div class="pattern-bar">
+    <input type="text" id="patternName" placeholder="パターン名（例：11月 TSA）">
+    <button onclick="savePattern()">この STD / STA を保存</button>
+    <span id="patternList"></span>
+  </div>
+  <p class="note" style="margin:0 0 8px;">STD / STA は一定期間ごとに変わるため、名前を付けて保存できます。保存したパターンはこの端末に残り、タップで呼び出せます。現在の入力も自動保存されます。</p>
   <div id="legs"></div>
 </section>
 
@@ -275,16 +318,7 @@
     </div>
 
     <div class="results-right">
-      <div class="field" style="margin-bottom:7px;">
-        <label>ATA（区間1 実到着・遅延時のみ入力）</label>
-        <div style="display:flex;align-items:center;">
-          <input class="time-red" type="time" id="ataOverride" onchange="setAtaOverride(this.value)"><span class="zsuffix">z</span>
-          <div class="stp-stack" style="margin-left:4px;">
-            <button class="stp-btn" onclick="stepAtaTime(5)">＋</button>
-            <button class="stp-btn" onclick="stepAtaTime(-5)">−</button>
-          </div>
-        </div>
-      </div>
+      <p class="note" style="margin:0 0 7px;">ATD（実出発）・ATA（実到着）は、各区間の STD / STA の下で入力します。ATDを変えると、その分だけ STA も自動でずれます。</p>
 
       <div id="rrOk" class="banner ok" style="display:none;">
         <b id="rrOkMsg">--</b>
@@ -340,8 +374,8 @@ let ataOverrideVal = ''; // ATA(区間1実到着)のソース・オブ・トゥ�
 function newLeg(preset){
   legIdSeq++;
   return Object.assign({
-    id:legIdSeq, type:'REV', flightNo:'', std:'', suLeadH:1, suLeadM:30,
-    sta:'', arrAirport:'HND_NRT', customs:'YES'
+    id:legIdSeq, type:'REV', flightNo:'', std:'', atd:'', suLeadH:1, suLeadM:30,
+    sta:'', ata:'', arrAirport:'HND_NRT', customs:'YES'
   }, preset||{});
 }
 
@@ -350,9 +384,7 @@ function initLegs(){
   legs = [newLeg({arrAirport:'OTHER', suLeadH:1, suLeadM:40}), newLeg({arrAirport:'HND_NRT'})];
 }
 function syncAtaDefault(){
-  ataOverrideVal = (legs[0] && legs[0].sta) || '';
-  const ata = document.getElementById('ataOverride');
-  if(ata) ata.value = ataOverrideVal;
+  ataOverrideVal = (legs[0] && (legs[0].ata || legs[0].sta)) || '';
 }
 function setAtaOverride(val){
   ataOverrideVal = val || '';
@@ -367,15 +399,15 @@ function setActiveBtn(id){
   if(el) el.classList.add('active');
 }
 function fillTSA(){
-  legs[0].std='09:25'; legs[0].sta='12:50'; legs[0].flightNo='JAL99'; legs[0].suLeadH=1; legs[0].suLeadM=40;
-  legs[1].std='01:40'; legs[1].sta='04:50'; legs[1].flightNo='JAL96'; legs[1].suLeadH=1; legs[1].suLeadM=30;
+  legs[0].std='09:25'; legs[0].sta='12:50'; legs[0].atd='09:25'; legs[0].ata='12:50'; legs[0].flightNo='JAL99'; legs[0].suLeadH=1; legs[0].suLeadM=40;
+  legs[1].std='01:40'; legs[1].sta='04:50'; legs[1].atd='01:40'; legs[1].ata='04:50'; legs[1].flightNo='JAL96'; legs[1].suLeadH=1; legs[1].suLeadM=30;
   syncAtaDefault();
   render();
   setActiveBtn('btnTsa');
 }
 function fillTPE(){
-  legs[0].std='09:05'; legs[0].sta='13:10'; legs[0].flightNo='JAL809'; legs[0].suLeadH=1; legs[0].suLeadM=35;
-  legs[1].std='02:35'; legs[1].sta='05:40'; legs[1].flightNo='JAL802'; legs[1].suLeadH=1; legs[1].suLeadM=25;
+  legs[0].std='09:05'; legs[0].sta='13:10'; legs[0].atd='09:05'; legs[0].ata='13:10'; legs[0].flightNo='JAL809'; legs[0].suLeadH=1; legs[0].suLeadM=35;
+  legs[1].std='02:35'; legs[1].sta='05:40'; legs[1].atd='02:35'; legs[1].ata='05:40'; legs[1].flightNo='JAL802'; legs[1].suLeadH=1; legs[1].suLeadM=25;
   syncAtaDefault();
   render();
   setActiveBtn('btnTpe');
@@ -538,6 +570,81 @@ function compute(){
   return {resolved, gaps, landings, first, last, offset};
 }
 
+
+/* ============ 行き / 帰り・ATD連動・パターン保存 ============ */
+const LEG_NAMES = ['行き','帰り'];
+function hhmmToMin(v){ if(!v) return null; const [h,m]=v.split(':').map(Number); return h*60+m; }
+function minToHhmm(mins){ const m=((mins%1440)+1440)%1440; return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; }
+function shiftHhmm(v, delta){ const base=hhmmToMin(v); return base===null? v : minToHhmm(base+delta); }
+// ATD（実出発）を変えたら、その差分と同じ分だけ STA（とATA）もずらす
+function setAtd(legId, val){
+  const leg = legs.find(l=>l.id===legId);
+  if(!leg || !val) return;
+  const prev = leg.atd || leg.std;
+  const prevMin = hhmmToMin(prev), newMin = hhmmToMin(val);
+  if(prevMin===null || newMin===null){ leg.atd = val; render(); return; }
+  let delta = newMin - prevMin;
+  if(delta > 720) delta -= 1440;
+  if(delta < -720) delta += 1440;
+  leg.atd = val;
+  if(delta!==0){
+    if(leg.sta) leg.sta = shiftHhmm(leg.sta, delta);
+    leg.ata = shiftHhmm(leg.ata || leg.sta, delta);
+  }
+  if(legs[0] && legId===legs[0].id) ataOverrideVal = leg.ata || '';
+  render();
+}
+// ATA（実到着）: 行きのATAは従来どおり休養・余裕の再計算に使う
+function setAta(legId, val){
+  const leg = legs.find(l=>l.id===legId);
+  if(!leg) return;
+  leg.ata = val || '';
+  if(legs[0] && legId===legs[0].id) ataOverrideVal = leg.ata || '';
+  updateResults();
+}
+function leadOpts(selected, max, step){
+  let out='';
+  for(let v=0; v<=max; v+=step){
+    out += `<option value="${v}" ${Number(selected)===v?'selected':''}>${v}</option>`;
+  }
+  return out;
+}
+/* ---- STD/STA パターンの名前付き保存 ---- */
+const PATTERN_KEY = 'ichirenzoku_patterns_v1';
+function getPatterns(){
+  try{ return JSON.parse(localStorage.getItem(PATTERN_KEY)) || []; }catch(e){ return []; }
+}
+function savePattern(){
+  const nameEl = document.getElementById('patternName');
+  let name = (nameEl && nameEl.value || '').trim();
+  if(!name) name = (legs.map(l=>l.flightNo).filter(Boolean).join(' / ') || 'パターン') + ' ' + new Date().toLocaleDateString('ja-JP');
+  const patterns = getPatterns().filter(pt=>pt.name!==name);
+  patterns.unshift({name, savedAt: Date.now(), legs: JSON.parse(JSON.stringify(legs))});
+  try{ localStorage.setItem(PATTERN_KEY, JSON.stringify(patterns)); }catch(e){}
+  if(nameEl) nameEl.value='';
+  renderPatterns();
+}
+function loadPattern(name){
+  const pt = getPatterns().find(x=>x.name===name);
+  if(!pt) return;
+  legs = JSON.parse(JSON.stringify(pt.legs));
+  legs.forEach(l=>{ l.type='REV'; if(l.atd===undefined) l.atd=l.std||''; if(l.ata===undefined) l.ata=l.sta||''; });
+  legIdSeq = legs.reduce((m,l)=>Math.max(m,l.id||0),0);
+  syncAtaDefault();
+  render();
+}
+function deletePattern(name){
+  try{ localStorage.setItem(PATTERN_KEY, JSON.stringify(getPatterns().filter(x=>x.name!==name))); }catch(e){}
+  renderPatterns();
+}
+function renderPatterns(){
+  const el = document.getElementById('patternList');
+  if(!el) return;
+  el.innerHTML = getPatterns().map(pt=>
+    `<span class="pattern-chip">${pt.name}<button onclick="loadPattern('${pt.name.replace(/'/g,"\\'")}')">呼出</button><button class="del" onclick="deletePattern('${pt.name.replace(/'/g,"\\'")}')">×</button></span>`
+  ).join(' ');
+}
+
 /* ============ 描画 ============ */
 function render(){
   const wrap = document.getElementById('legs');
@@ -551,75 +658,69 @@ function render(){
     div.className='leg';
     div.innerHTML = `
       <div class="leg-head">
-        <span class="tag">区間 ${i+1}</span>
+        <span class="tag">${LEG_NAMES[i] || ('区間 '+(i+1))}</span>
+        <input class="flightno" type="text" placeholder="便名" value="${l.flightNo||''}" onchange="updateLeg(${l.id},'flightNo',this.value)">
       </div>
 
-      <div class="leg-body">
-        <div class="leg-info">
-          <div class="leg-row">
-            <div class="su-display">
-              <span class="su-label">S/U</span>
-              <span class="su-val" id="suval-${l.id}">--:--</span>
-            </div>
-            <div class="field">
-              <label>出頭時刻 <span class="small">(ADM 3.1.2.10)</span></label>
-              <div class="lead-box">
-                <input class="lead-h" type="number" min="0" max="9" step="1" value="${l.suLeadH}" onchange="updateLeg(${l.id},'suLeadH',this.value)">
-                <span class="plus">+</span>
-                <input class="lead-m" type="number" min="0" max="55" step="5" value="${l.suLeadM}" onchange="updateLeg(${l.id},'suLeadM',this.value)">
-                <div class="stp-stack">
-                  <button class="stp-btn" onclick="stepLeadMinute(${l.id},5)">＋</button>
-                  <button class="stp-btn" onclick="stepLeadMinute(${l.id},-5)">−</button>
-                </div>
-                <span class="suffix">前</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="leg-row">
-            <div class="field">
-              <label>便名</label>
-              <input class="flightno" type="text" placeholder="便名" value="${l.flightNo||''}" onchange="updateLeg(${l.id},'flightNo',this.value)">
-            </div>
-            <div class="field">
-              <label>STD (UTC)</label>
-              <div style="display:flex;align-items:center;">
-                <input class="time-hi" type="time" value="${l.std}" onchange="updateLeg(${l.id},'std',this.value)"><span class="zsuffix">z</span>
-              </div>
-            </div>
-            <span class="dash">-</span>
-            <div class="field">
-              <label>STA (UTC)</label>
-              <div style="display:flex;align-items:center;">
-                <input class="time-hi" type="time" value="${l.sta}" onchange="updateLeg(${l.id},'sta',this.value)"><span class="zsuffix">z</span>
-              </div>
-            </div>
+      <div class="stdsta-row">
+        <div class="field">
+          <label>STD (UTC)</label>
+          <div style="display:flex;align-items:center;">
+            <input class="time-hi time-big" type="time" value="${l.std}" onchange="updateLeg(${l.id},'std',this.value)"><span class="zsuffix">z</span>
           </div>
         </div>
+        <span class="dash">-</span>
+        <div class="field">
+          <label>STA (UTC)</label>
+          <div style="display:flex;align-items:center;">
+            <input class="time-hi time-big" type="time" value="${l.sta}" onchange="updateLeg(${l.id},'sta',this.value)"><span class="zsuffix">z</span>
+          </div>
+        </div>
+      </div>
 
-        <div class="field-stack leg-select-col">
-          <div class="field-inline">
-            <label>種別</label>
-            <select onchange="updateLeg(${l.id},'type',this.value)">
-              <option value="REV" ${l.type==='REV'?'selected':''}>乗務</option>
-              <option value="DH" ${l.type==='DH'?'selected':''}>DEAD HEAD</option>
-            </select>
+      <div class="stdsta-row" style="margin-top:6px;">
+        <div class="field">
+          <label>ATD (実出発)</label>
+          <div style="display:flex;align-items:center;">
+            <input class="time-actual" type="time" value="${l.atd || l.std || ''}" onchange="setAtd(${l.id},this.value)"><span class="zsuffix">z</span>
           </div>
-          <div class="field-inline">
-            <label>到着空港</label>
-            <select onchange="updateLeg(${l.id},'arrAirport',this.value)">
-              <option value="HND_NRT" ${l.arrAirport==='HND_NRT'?'selected':''}>羽田・成田</option>
-              <option value="OSAKA_NAGOYA" ${l.arrAirport==='OSAKA_NAGOYA'?'selected':''}>大阪・名古屋</option>
-              <option value="OTHER" ${l.arrAirport==='OTHER'?'selected':''}>その他</option>
-            </select>
+        </div>
+        <span class="dash" style="padding-bottom:8px;">-</span>
+        <div class="field">
+          <label>ATA (実到着)</label>
+          <div style="display:flex;align-items:center;">
+            <input class="time-actual ata" type="time" value="${l.ata || l.sta || ''}" onchange="setAta(${l.id},this.value)"><span class="zsuffix">z</span>
           </div>
-          <div class="field-inline">
-            <label>通関</label>
-            <select onchange="updateLeg(${l.id},'customs',this.value)">
-              <option value="YES" ${l.customs==='YES'?'selected':''}>要</option>
-              <option value="NO" ${l.customs==='NO'?'selected':''}>不要</option>
-            </select>
-          </div>
+        </div>
+      </div>
+
+      <div class="leg-row">
+        <div class="su-compact">
+          <span class="su-label">S/U</span>
+          <span class="su-val" id="suval-${l.id}">--:--</span>
+          <span class="lead-drum">
+            出頭
+            <select onchange="updateLeg(${l.id},'suLeadH',this.value)">${leadOpts(l.suLeadH,4,1)}</select>時間
+            <select onchange="updateLeg(${l.id},'suLeadM',this.value)">${leadOpts(l.suLeadM,55,5)}</select>分前
+          </span>
+        </div>
+      </div>
+
+      <div class="mini-row">
+        <div class="field-inline">
+          <label>到着空港</label>
+          <select onchange="updateLeg(${l.id},'arrAirport',this.value)">
+            <option value="HND_NRT" ${l.arrAirport==='HND_NRT'?'selected':''}>羽田・成田</option>
+            <option value="OSAKA_NAGOYA" ${l.arrAirport==='OSAKA_NAGOYA'?'selected':''}>大阪・名古屋</option>
+            <option value="OTHER" ${l.arrAirport==='OTHER'?'selected':''}>その他</option>
+          </select>
+        </div>
+        <div class="field-inline">
+          <label>通関</label>
+          <select onchange="updateLeg(${l.id},'customs',this.value)">
+            <option value="YES" ${l.customs==='YES'?'selected':''}>要</option>
+            <option value="NO" ${l.customs==='NO'?'selected':''}>不要</option>
+          </select>
         </div>
       </div>`;
     legsRow.appendChild(div);
@@ -653,13 +754,18 @@ function render(){
     }
   });
 
+  renderPatterns();
   updateResults();
 }
 
 function updateLeg(id, key, val){
   const leg = legs.find(l=>l.id===id);
   if(!leg) return;
+  const oldStd = leg.std, oldSta = leg.sta;
   leg[key]=val;
+  // STD/STAを直したら、未編集のATD/ATAも追随させる
+  if(key==='std' && (!leg.atd || leg.atd===oldStd)) leg.atd = val;
+  if(key==='sta' && (!leg.ata || leg.ata===oldSta)) leg.ata = val;
   if(legs.length>0 && id===legs[0].id && key==='sta'){
     syncAtaDefault();
   }
@@ -806,11 +912,11 @@ function updateResults(){
     const allLegsOk = legChecks.every(c=>c.fdpOk && c.blkOk);
     bannerStay.style.display='block';
     if(allLegsOk){
-      bannerStay.innerHTML = `一連続勤務としては成立しますが、休養時間が所要休養（<b>${restH}時間</b>）以上のため、実運用上はこの休養時点で一連続勤務が終了し、区間2は<b>新しい一連続勤務（ステイパターン）</b>として扱われます。各区間を独立判定した結果、いずれも上限内です（`
-        + legChecks.map(c=>`区間${c.i+1}: FDP ${fmtHM(c.fdpLeg)}/${fmtHM(c.lim[1])}`).join('、') + `）。`;
+      bannerStay.innerHTML = `一連続勤務としては成立しますが、休養時間が所要休養（<b>${restH}時間</b>）以上のため、実運用上はこの休養時点で一連続勤務が終了し、帰りは<b>新しい一連続勤務（ステイパターン）</b>として扱われます。各区間を独立判定した結果、いずれも上限内です（`
+        + legChecks.map(c=>`${LEG_NAMES[c.i]||('区間'+(c.i+1))}: FDP ${fmtHM(c.fdpLeg)}/${fmtHM(c.lim[1])}`).join('、') + `）。`;
     } else {
       bannerStay.innerHTML = `休養時間が所要休養（<b>${restH}時間</b>)以上のためステイパターン扱いですが、<b>独立判定で上限を超える区間があります</b>：`
-        + legChecks.filter(c=>!(c.fdpOk&&c.blkOk)).map(c=>`区間${c.i+1}(FDP ${fmtHM(c.fdpLeg)}/${fmtHM(c.lim[1])}, 乗務 ${fmtHM(c.blkLeg)}/${fmtHM(c.lim[0])})`).join('、');
+        + legChecks.filter(c=>!(c.fdpOk&&c.blkOk)).map(c=>`${LEG_NAMES[c.i]||('区間'+(c.i+1))}(FDP ${fmtHM(c.fdpLeg)}/${fmtHM(c.lim[1])}, 乗務 ${fmtHM(c.blkLeg)}/${fmtHM(c.lim[0])})`).join('、');
     }
   } else {
     bannerStay.style.display='none';
@@ -958,6 +1064,7 @@ document.getElementById('offset').addEventListener('change', render);
 
 renderRefTable();
 if(loadState()){
+  legs.forEach(l=>{ l.type='REV'; if(l.atd===undefined) l.atd=l.std||''; if(l.ata===undefined) l.ata=l.sta||''; });
   syncAtaDefault();
   render();
 } else {
