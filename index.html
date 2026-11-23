@@ -271,14 +271,17 @@
   .tl-table input[type="time"]::-webkit-date-and-time-value{text-align:center;margin:0 auto;}
   .tl-table .fn-input{background:transparent;border:none;color:inherit;font-weight:700;font-size:15px;text-align:center;width:100%;min-width:0;padding:0;}
   .tl-table .tl-tag{display:block;font-size:10px;color:var(--muted,#9aa4b2);font-weight:600;}
-  .tl-table td.meta-cell{font-size:12px;color:var(--muted,#9aa4b2);white-space:normal;line-height:1.9;}
-  .tl-table td.meta-cell select{font-size:12px;width:auto;display:inline-block;}
+  .tl-table td.meta-cell{font-size:10.5px;color:var(--muted,#9aa4b2);white-space:normal;line-height:1.9;}
+  .tl-table td.meta-cell select{font-size:11px;width:auto;display:inline-block;}
   .tl-table tr.req-head td{font-size:11px;color:var(--muted,#9aa4b2);font-weight:600;}
   .tl-table tr.dly-row td{font-weight:700;}
   .tl-table .dly-ok{color:#4ade80;}
   .tl-table .dly-stay{color:#7dd3fc;}
   .tl-table tr.arrow-row td{border-top:none;border-bottom:none;color:var(--muted,#9aa4b2);font-size:12px;padding:1px 2px;}
-  .tl-table tr.rest-row td{background:rgba(192,132,252,.07);padding-top:12px;padding-bottom:12px;}
+  .tl-table tr.rest-row td{background:rgba(192,132,252,.07);padding-top:12px;padding-bottom:12px;font-size:19px;}
+  .tl-table tr.rest-row td.lbl{font-size:10.5px;}
+  .tl-table tr.dly-row td{padding-top:12px;padding-bottom:12px;}
+  .tl-table input{vertical-align:middle;}
   .tl-table tr.head-row th{background:#f5c15c;color:#241c08;}
   .tl-table tr.req-head td{background:#f5c15c;color:#241c08;font-weight:600;}
   .tl-table .dly-red{color:#f87171;}
@@ -762,7 +765,7 @@ function legBlockRows(l, i){
   return `
     <tr>
       <td class="fn" rowspan="2"><span class="tl-tag">${LEG_NAMES[i]||''}</span><input class="fn-input" id="tlFn${n}" type="text" placeholder="便名" value="${l.flightNo||''}" onchange="updateLeg(${l.id},'flightNo',this.value)"></td>
-      <td rowspan="2" class="su-cell" id="tlSu${n}">--:--</td>
+      <td rowspan="2" class="su-cell${i===1?' acc':''}" id="tlSu${n}">--:--</td>
       <td><span class="cell-lab">STD</span><input class="tl-sched" type="time" value="${l.std||''}" onchange="updateLeg(${l.id},'std',this.value)"></td>
       <td><span class="cell-lab">STA</span><input class="tl-sched" type="time" value="${l.sta||''}" onchange="updateLeg(${l.id},'sta',this.value)"></td>
       <td></td>
@@ -786,8 +789,8 @@ function renderUnified(wrap){
       <tr class="head-row"><th></th><th>S/U</th><th>STD・B/O</th><th>STA・B/I</th><th>業務終了</th><th></th><th></th></tr>
       ${legBlockRows(legs[0],0)}
       <tr class="rest-row"><td></td><td colspan="3" class="acc" id="tlRestRange">--:-- → --:--</td><td class="acc">＝</td><td class="dur" id="tlRestDur">--+--</td><td class="lbl">休養時間</td></tr>
-      <tr class="req-head" id="tlReqHead"><td></td><td colspan="2">休養開始時刻</td><td colspan="2">必要休養時間</td><td colspan="2">休養完了時刻</td></tr>
-      <tr id="tlReqRow"><td></td><td colspan="2"><span class="acc" id="tlReqStart">--:--</span></td><td colspan="2">＋ <span id="tlReqDur">--+--</span></td><td colspan="2"><span class="acc" id="tlReqUntil">--:--</span></td></tr>
+      <tr class="req-head" id="tlReqHead"><td colspan="2">休養開始時刻</td><td></td><td colspan="2">必要休養時間</td><td colspan="2">休養完了時刻</td></tr>
+      <tr id="tlReqRow"><td colspan="2"><span class="acc" id="tlReqStart">--:--</span></td><td>＋</td><td colspan="2"><span id="tlReqDur">--+--</span></td><td colspan="2"><span class="acc" id="tlReqUntil">--:--</span></td></tr>
       ${legBlockRows(legs[1],1)}
       <tr class="arrow-row" id="tlArrowRow"><td></td><td>↓</td><td>↓</td><td></td><td></td><td></td><td></td></tr>
       <tr class="dly-row" id="tlDlyRow"><td>DLY Set</td><td id="tlDlySu">--:--</td><td id="tlDlyBo">--:--</td><td id="tlDlyBi">--:--</td><td id="tlDlyEnd">--:--</td><td colspan="2" id="tlDlyVerdict">--</td></tr>
