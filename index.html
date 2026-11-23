@@ -261,7 +261,15 @@
   .tl-table .lbl{font-size:10.5px;color:var(--muted,#9aa4b2);}
   .tl-table .fdur{font-size:10.5px;color:var(--muted,#9aa4b2);font-weight:400;}
   .tl-table .tl-time{background:transparent;border:none;color:inherit;font:inherit;font-size:18px;font-weight:700;text-align:center;width:100%;min-width:0;padding:0;}
-  .tl-table .tl-time.diff{color:#fbbf24;background:rgba(251,191,36,.14);border-radius:4px;}
+  .tl-table .tl-time.diff{color:#fbbf24;}
+  .tl-table td.fill{background:rgba(148,163,184,.18);}
+  .tl-table .tl-sched{background:transparent;border:none;color:inherit;font:inherit;font-size:18px;font-weight:700;text-align:center;width:100%;min-width:0;padding:0;display:block;margin:0 auto;}
+  .tl-table .tl-time{display:block;margin:0 auto;}
+  .tl-table input[type="time"]::-webkit-date-and-time-value{text-align:center;margin:0 auto;}
+  .tl-table .fn-input{background:transparent;border:none;color:inherit;font-weight:700;font-size:15px;text-align:center;width:100%;min-width:0;padding:0;}
+  .tl-table .tl-tag{display:block;font-size:10px;color:var(--muted,#9aa4b2);font-weight:600;}
+  .tl-table td.meta-cell{font-size:12px;color:var(--muted,#9aa4b2);}
+  .tl-table td.meta-cell select{font-size:12px;}
   .tl-table tr.req-head td{font-size:11px;color:var(--muted,#9aa4b2);font-weight:600;}
   .tl-table tr.dly-row td{font-weight:700;}
   .tl-table .dly-ok{color:#4ade80;}
@@ -730,9 +738,68 @@ function renderPatterns(){
 }
 
 /* ============ 描画 ============ */
+function legMetaHTML(l){
+  return `<span>出頭 <select onchange="updateLeg(${l.id},'suLeadH',this.value)">${leadOpts(l.suLeadH,4,1)}</select>時間 <select onchange="updateLeg(${l.id},'suLeadM',this.value)">${leadOpts(l.suLeadM,55,5)}</select>分前</span>
+    <span>到着空港 <select onchange="updateLeg(${l.id},'arrAirport',this.value)">
+      <option value="HND_NRT" ${l.arrAirport==='HND_NRT'?'selected':''}>羽田・成田</option>
+      <option value="OSAKA_NAGOYA" ${l.arrAirport==='OSAKA_NAGOYA'?'selected':''}>大阪・名古屋</option>
+      <option value="OTHER" ${l.arrAirport==='OTHER'?'selected':''}>その他</option>
+    </select></span>
+    <span>通関 <select onchange="updateLeg(${l.id},'customs',this.value)">
+      <option value="YES" ${l.customs==='YES'?'selected':''}>要</option>
+      <option value="NO" ${l.customs==='NO'?'selected':''}>不要</option>
+    </select></span>`;
+}
+function legBlockRows(l, i){
+  const n = i+1;
+  const fill = i===0 ? ' class="fill"' : '';
+  return `
+    <tr>
+      <td class="fn" rowspan="2"><span class="tl-tag">${LEG_NAMES[i]||''}</span><input class="fn-input" id="tlFn${n}" type="text" placeholder="便名" value="${l.flightNo||''}" onchange="updateLeg(${l.id},'flightNo',this.value)"></td>
+      <td rowspan="2" id="tlSu${n}">--:--</td>
+      <td><input class="tl-sched" type="time" value="${l.std||''}" onchange="updateLeg(${l.id},'std',this.value)"></td>
+      <td><input class="tl-sched" type="time" value="${l.sta||''}" onchange="updateLeg(${l.id},'sta',this.value)"></td>
+      <td></td>
+      <td class="fdur" id="tlBlkS${n}">--+--</td>
+      <td class="lbl">予定</td>
+    </tr>
+    <tr>
+      <td${fill}><input class="tl-time" id="tlBo${n}" type="time" onchange="setAtd(${l.id},this.value)"></td>
+      <td${fill}><input class="tl-time" id="tlBi${n}" type="time" onchange="setAta(${l.id},this.value)"></td>
+      <td class="acc" id="tlEnd${n}">--:--</td>
+      <td class="fdur" id="tlBlk${n}">--+--</td>
+      <td class="lbl">飛行時間</td>
+    </tr>
+    <tr><td class="meta-cell" colspan="7">${legMetaHTML(l)}</td></tr>`;
+}
+function renderUnified(wrap){
+  const holder = document.createElement('div');
+  holder.innerHTML = `
+    <table class="tl-table">
+      <tr><th></th><th>S/U</th><th>STD・B/O</th><th>STA・B/I</th><th>業務終了</th><th></th><th></th></tr>
+      ${legBlockRows(legs[0],0)}
+      <tr class="rest-row"><td></td><td colspan="3" class="acc" id="tlRestRange">--:-- → --:--</td><td class="acc">＝</td><td class="dur" id="tlRestDur">--+--</td><td class="lbl">休養時間</td></tr>
+      <tr class="req-head" id="tlReqHead"><td></td><td colspan="2">休養開始時刻</td><td colspan="2">必要休養時間</td><td colspan="2">休養完了時刻</td></tr>
+      <tr id="tlReqRow"><td></td><td colspan="2"><span class="acc" id="tlReqStart">--:--</span></td><td colspan="2">＋ <span id="tlReqDur">--+--</span></td><td colspan="2"><span class="acc" id="tlReqUntil">--:--</span></td></tr>
+      ${legBlockRows(legs[1],1)}
+      <tr class="arrow-row" id="tlArrowRow"><td></td><td>↓</td><td>↓</td><td></td><td></td><td></td><td></td></tr>
+      <tr class="dly-row" id="tlDlyRow"><td>DLY Set</td><td id="tlDlySu">--:--</td><td id="tlDlyBo">--:--</td><td id="tlDlyBi">--:--</td><td id="tlDlyEnd">--:--</td><td colspan="2" id="tlDlyVerdict">--</td></tr>
+    </table>
+    <div class="gap-elig">
+      <span class="badge" id="gapbadge-0">--</span>
+      <label class="checkline"><input type="checkbox" ${gapForceHalf[0]?'checked':''} onchange="setForceHalf(0,this.checked)">自動判定無視・半分減算固定</label>
+    </div>`;
+  wrap.appendChild(holder);
+}
 function render(){
   const wrap = document.getElementById('legs');
   wrap.innerHTML = '';
+  if(legs.length===2){
+    renderUnified(wrap);
+    renderPatterns();
+    updateResults();
+    return;
+  }
   const legsRow = document.createElement('div');
   legsRow.className = 'legs-row';
   wrap.appendChild(legsRow);
@@ -907,7 +974,8 @@ function updateResults(){
     const setT = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
     const [t1,t2] = r.resolved;
     const gg = r.gaps[0];
-    setT('tlFn1', t1.flightNo||'--');
+    const fn1=document.getElementById('tlFn1'); if(fn1) fn1.value = legs[0].flightNo||'';
+    setT('tlBlkS1', (t1.stdCursor!==null&&t1.staCursor!==null)?fmtHM(t1.staCursor-t1.stdCursor):'--+--');
     setT('tlSu1', fmtClock(t1.suCursor));
     const bo1=document.getElementById('tlBo1'); if(bo1){ bo1.value = legs[0].atd || legs[0].std || ''; bo1.classList.toggle('diff', !!legs[0].atd && !!legs[0].std && legs[0].atd!==legs[0].std); }
     const bi1=document.getElementById('tlBi1'); if(bi1){ bi1.value = legs[0].ata || legs[0].sta || ''; bi1.classList.toggle('diff', !!legs[0].ata && !!legs[0].sta && legs[0].ata!==legs[0].sta); }
@@ -915,7 +983,8 @@ function updateResults(){
     setT('tlBlk1', (t1.atdCursor!==null&&t1.effStaCursor!==null)?fmtHM(t1.effStaCursor-t1.atdCursor):'--+--');
     setT('tlRestRange', fmtClock(gg.start)+' → '+fmtClock(gg.end));
     setT('tlRestDur', fmtHM(gg.dur));
-    setT('tlFn2', t2.flightNo||'--');
+    const fn2=document.getElementById('tlFn2'); if(fn2) fn2.value = legs[1].flightNo||'';
+    setT('tlBlkS2', (t2.stdCursor!==null&&t2.staCursor!==null)?fmtHM(t2.staCursor-t2.stdCursor):'--+--');
     setT('tlSu2', fmtClock(t2.suCursor));
     const bo2=document.getElementById('tlBo2'); if(bo2){ bo2.value = legs[1].atd || legs[1].std || ''; bo2.classList.toggle('diff', !!legs[1].atd && !!legs[1].std && legs[1].atd!==legs[1].std); }
     const bi2=document.getElementById('tlBi2'); if(bi2){ bi2.value = legs[1].ata || legs[1].sta || ''; bi2.classList.toggle('diff', !!legs[1].ata && !!legs[1].sta && legs[1].ata!==legs[1].sta); }
