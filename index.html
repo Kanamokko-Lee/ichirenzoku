@@ -163,6 +163,9 @@
   /* pattern save bar */
   .pattern-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;}
   .pattern-bar input[type=text]{width:150px;height:32px;font-size:13px;font-family:var(--sans);}
+  .gist-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;font-size:12px;color:var(--muted);}
+  .gist-bar input[type=password]{width:190px;height:30px;font-size:12px;font-family:var(--mono);}
+  .gist-bar .gist-status{color:var(--muted);}
   .pattern-bar button{
     background:var(--panel2);border:1px solid var(--amber-dim);color:var(--amber);
     font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;
@@ -342,7 +345,14 @@
     <button onclick="savePattern()">この STD / STA を保存</button>
     <span id="patternList"></span>
   </div>
-  <p class="note" style="margin:0 0 8px;">STD / STA は一定期間ごとに変わるため、名前を付けて保存できます。保存したパターンはこの端末に残り、タップで呼び出せます。現在の入力も自動保存されます。</p>
+  <div class="gist-bar">
+    <span>Gist同期：</span>
+    <input type="password" id="gistToken" placeholder="GitHubトークン（gist権限のみ）" autocomplete="off">
+    <button class="btn ghost" onclick="gistConnect()">接続</button>
+    <button class="btn ghost" onclick="gistPull(true)">読み込む</button>
+    <span class="gist-status" id="gistStatus">未接続（保存はこの端末のみ）</span>
+  </div>
+  <p class="note" style="margin:0 0 8px;">STD / STA は一定期間ごとに変わるため、名前を付けて保存できます。Gist同期に接続すると、保存したパターンが他の端末でも使えます（トークンはこの端末のブラウザ内にだけ保存されます）。現在の入力も自動保存されます。</p>
   <div id="legs"></div>
 </section>
 
@@ -677,6 +687,7 @@ function savePattern(){
   try{ localStorage.setItem(PATTERN_KEY, JSON.stringify(patterns)); }catch(e){}
   if(nameEl) nameEl.value='';
   renderPatterns();
+  gistPush();
 }
 function loadPattern(name){
   const pt = getPatterns().find(x=>x.name===name);
@@ -690,6 +701,7 @@ function loadPattern(name){
 function deletePattern(name){
   try{ localStorage.setItem(PATTERN_KEY, JSON.stringify(getPatterns().filter(x=>x.name!==name))); }catch(e){}
   renderPatterns();
+  gistPush();
 }
 function renderPatterns(){
   const el = document.getElementById('patternList');
@@ -697,6 +709,84 @@ function renderPatterns(){
   el.innerHTML = getPatterns().map(pt=>
     `<span class="pattern-chip">${pt.name}<button onclick="loadPattern('${pt.name.replace(/'/g,"\\'")}')">呼出</button><button class="del" onclick="deletePattern('${pt.name.replace(/'/g,"\\'")}')">×</button></span>`
   ).join(' ');
+}
+
+
+/* ---- Gist 同期（パターンを端末間で共有） ---- */
+const GIST_FILE = 'ichirenzoku_patterns.json';
+const GIST_TOKEN_KEY = 'ichirenzoku_gist_token';
+const GIST_ID_KEY = 'ichirenzoku_gist_id';
+function gistToken(){ return localStorage.getItem(GIST_TOKEN_KEY) || ''; }
+function gistId(){ return localStorage.getItem(GIST_ID_KEY) || ''; }
+function setGistStatus(msg){ const el = document.getElementById('gistStatus'); if(el) el.textContent = msg; }
+async function gistApi(path, opts){
+  opts = opts || {};
+  const res = await fetch('https://api.github.com' + path, Object.assign({}, opts, {
+    headers: { 'Authorization': 'Bearer ' + gistToken(), 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' }
+  }));
+  if(!res.ok) throw new Error('GitHub API ' + res.status);
+  return res.status === 204 ? null : res.json();
+}
+async function gistFindOrCreate(){
+  let id = gistId();
+  if(id){
+    try{ await gistApi('/gists/' + id); return; }
+    catch(e){ id = ''; localStorage.removeItem(GIST_ID_KEY); }
+  }
+  const list = await gistApi('/gists?per_page=100');
+  const found = (list || []).find(g => g.files && g.files[GIST_FILE]);
+  if(found){ localStorage.setItem(GIST_ID_KEY, found.id); return; }
+  const created = await gistApi('/gists', { method: 'POST', body: JSON.stringify({
+    description: 'ichirenzoku patterns (一連続勤務チェッカー)',
+    public: false,
+    files: { [GIST_FILE]: { content: JSON.stringify(getPatterns(), null, 2) } }
+  })});
+  localStorage.setItem(GIST_ID_KEY, created.id);
+}
+async function gistConnect(){
+  const input = document.getElementById('gistToken');
+  const t = (input && input.value || '').trim();
+  if(t) localStorage.setItem(GIST_TOKEN_KEY, t);
+  if(!gistToken()){ setGistStatus('トークンを入力してください'); return; }
+  try{
+    setGistStatus('接続中…');
+    await gistFindOrCreate();
+    await gistPull(false);
+    setGistStatus('同期OK：この端末のパターンをGistと一致させました');
+  }catch(e){ setGistStatus('接続失敗（' + e.message + '）トークンと権限を確認してください'); }
+}
+async function gistPull(manual){
+  if(!gistToken()){ if(manual) setGistStatus('先にトークンを入力して接続してください'); return; }
+  try{
+    if(!gistId()) await gistFindOrCreate();
+    const g = await gistApi('/gists/' + gistId());
+    const file = g.files && g.files[GIST_FILE];
+    if(file && file.content){
+      const arr = JSON.parse(file.content);
+      if(Array.isArray(arr)){
+        try{ localStorage.setItem(PATTERN_KEY, JSON.stringify(arr)); }catch(e){}
+        renderPatterns();
+        if(manual) setGistStatus('同期OK：Gistから読み込みました');
+      }
+    }
+  }catch(e){ if(manual) setGistStatus('読み込み失敗（' + e.message + '）'); }
+}
+async function gistPush(){
+  if(!gistToken() || !gistId()) return;
+  try{
+    await gistApi('/gists/' + gistId(), { method: 'PATCH', body: JSON.stringify({
+      files: { [GIST_FILE]: { content: JSON.stringify(getPatterns(), null, 2) } }
+    })});
+    setGistStatus('同期OK：Gistに保存しました ' + new Date().toLocaleTimeString('ja-JP'));
+  }catch(e){ setGistStatus('Gist保存失敗（' + e.message + '）この端末には保存済みです'); }
+}
+function gistInit(){
+  const input = document.getElementById('gistToken');
+  if(input && gistToken()) input.value = gistToken();
+  if(gistToken()){
+    setGistStatus('接続済み：Gistと同期します');
+    gistFindOrCreate().then(()=>gistPull(false)).catch(()=>setGistStatus('Gistに接続できませんでした（保存はこの端末のみ）'));
+  }
 }
 
 /* ============ 描画 ============ */
@@ -1085,6 +1175,7 @@ if(loadState()){
   initLegs();
   fillTSA();
 }
+gistInit();
 </script>
 </body>
 </html>
