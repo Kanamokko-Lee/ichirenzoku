@@ -250,7 +250,10 @@
   .banner.ok{background:var(--green-dim);color:#c9ffe4;border:1px solid #2a7a54;}
   .banner.bad{background:var(--red-dim);color:#ffd6d6;border:1px solid #8a2c2c;}
   .banner.stay{background:#1c3a5c;color:#cfe4ff;border:1px solid #2f5c8a;}
-  .tl-table{width:100%;border-collapse:collapse;border:2px solid #6b7280;font-size:15px;background:var(--panel2,#1b2432);}
+  .tl-table{width:100%;border-collapse:collapse;border:2px solid #6b7280;font-size:15px;background:var(--panel2,#1b2432);table-layout:fixed;}
+  .tl-table .cell-lab{font-size:10px;color:var(--muted,#9aa4b2);font-weight:600;margin-right:1px;vertical-align:middle;}
+  .tl-table .su-cell{font-size:14px;}
+  .tl-table .end-cell{font-size:14px;}
   .tl-table th,.tl-table td{border:1px solid #4b5563;padding:5px 2px;text-align:center;white-space:nowrap;vertical-align:middle;}
   .tl-table input{text-align:center;}
   .tl-table th{font-size:11px;color:var(--muted,#9aa4b2);font-weight:600;}
@@ -263,13 +266,13 @@
   .tl-table .tl-time{background:transparent;border:none;color:inherit;font:inherit;font-size:18px;font-weight:700;text-align:center;width:100%;min-width:0;padding:0;}
   .tl-table .tl-time.diff{color:#fbbf24;}
   .tl-table td.fill{background:rgba(148,163,184,.18);}
-  .tl-table .tl-sched{background:transparent;border:none;color:inherit;font:inherit;font-size:18px;font-weight:700;text-align:center;width:100%;min-width:0;padding:0;display:block;margin:0 auto;}
-  .tl-table .tl-time{display:block;margin:0 auto;}
+  .tl-table .tl-sched{background:transparent;border:none;color:inherit;font:inherit;font-size:16px;font-weight:700;text-align:center;width:auto;min-width:0;padding:0;display:inline-block;margin:0 auto;}
+  .tl-table .tl-time{display:inline-block;width:auto;font-size:16px;margin:0 auto;}
   .tl-table input[type="time"]::-webkit-date-and-time-value{text-align:center;margin:0 auto;}
   .tl-table .fn-input{background:transparent;border:none;color:inherit;font-weight:700;font-size:15px;text-align:center;width:100%;min-width:0;padding:0;}
   .tl-table .tl-tag{display:block;font-size:10px;color:var(--muted,#9aa4b2);font-weight:600;}
-  .tl-table td.meta-cell{font-size:12px;color:var(--muted,#9aa4b2);}
-  .tl-table td.meta-cell select{font-size:12px;}
+  .tl-table td.meta-cell{font-size:12px;color:var(--muted,#9aa4b2);white-space:normal;line-height:1.9;}
+  .tl-table td.meta-cell select{font-size:12px;width:auto;display:inline-block;}
   .tl-table tr.req-head td{font-size:11px;color:var(--muted,#9aa4b2);font-weight:600;}
   .tl-table tr.dly-row td{font-weight:700;}
   .tl-table .dly-ok{color:#4ade80;}
@@ -756,17 +759,17 @@ function legBlockRows(l, i){
   return `
     <tr>
       <td class="fn" rowspan="2"><span class="tl-tag">${LEG_NAMES[i]||''}</span><input class="fn-input" id="tlFn${n}" type="text" placeholder="便名" value="${l.flightNo||''}" onchange="updateLeg(${l.id},'flightNo',this.value)"></td>
-      <td rowspan="2" id="tlSu${n}">--:--</td>
-      <td><input class="tl-sched" type="time" value="${l.std||''}" onchange="updateLeg(${l.id},'std',this.value)"></td>
-      <td><input class="tl-sched" type="time" value="${l.sta||''}" onchange="updateLeg(${l.id},'sta',this.value)"></td>
+      <td rowspan="2" class="su-cell" id="tlSu${n}">--:--</td>
+      <td><span class="cell-lab">STD</span><input class="tl-sched" type="time" value="${l.std||''}" onchange="updateLeg(${l.id},'std',this.value)"></td>
+      <td><span class="cell-lab">STA</span><input class="tl-sched" type="time" value="${l.sta||''}" onchange="updateLeg(${l.id},'sta',this.value)"></td>
       <td></td>
       <td class="fdur" id="tlBlkS${n}">--+--</td>
       <td class="lbl">予定</td>
     </tr>
     <tr>
-      <td${fill}><input class="tl-time" id="tlBo${n}" type="time" onchange="setAtd(${l.id},this.value)"></td>
-      <td${fill}><input class="tl-time" id="tlBi${n}" type="time" onchange="setAta(${l.id},this.value)"></td>
-      <td class="acc" id="tlEnd${n}">--:--</td>
+      <td${fill}><span class="cell-lab">B/O</span><input class="tl-time" id="tlBo${n}" type="time" onchange="setAtd(${l.id},this.value)"></td>
+      <td${fill}><span class="cell-lab">B/I</span><input class="tl-time" id="tlBi${n}" type="time" onchange="setAta(${l.id},this.value)"></td>
+      <td class="acc end-cell" id="tlEnd${n}">--:--</td>
       <td class="fdur" id="tlBlk${n}">--+--</td>
       <td class="lbl">飛行時間</td>
     </tr>
@@ -776,6 +779,7 @@ function renderUnified(wrap){
   const holder = document.createElement('div');
   holder.innerHTML = `
     <table class="tl-table">
+      <colgroup><col style="width:11%"><col style="width:13%"><col style="width:20%"><col style="width:20%"><col style="width:15%"><col style="width:9%"><col style="width:12%"></colgroup>
       <tr><th></th><th>S/U</th><th>STD・B/O</th><th>STA・B/I</th><th>業務終了</th><th></th><th></th></tr>
       ${legBlockRows(legs[0],0)}
       <tr class="rest-row"><td></td><td colspan="3" class="acc" id="tlRestRange">--:-- → --:--</td><td class="acc">＝</td><td class="dur" id="tlRestDur">--+--</td><td class="lbl">休養時間</td></tr>
@@ -1035,7 +1039,7 @@ function updateResults(){
   kvBlock.textContent = `${fmtHM(blockTime)} / ${fmtHM(blockLimit)}`;
   kvBlock.className = blockOk ? 'v' : 'v bad';
 
-  document.getElementById('gaugeUnit').textContent = margin<0 ? '分の超過' : '分の余裕';
+  document.getElementById('gaugeUnit').textContent = margin<0 ? 'の超過' : '分の余裕';
   const gaugeWrap = document.getElementById('gaugeWrap');
   const big = document.getElementById('marginBig');
   const caption = document.getElementById('gaugeCaption');
@@ -1058,7 +1062,7 @@ function updateResults(){
     bannerBad.style.display='block';
     document.getElementById('bnOver').textContent = fmtHM(blockTime - blockLimit) + `（乗務時間）`;
   } else {
-    big.textContent = Math.round(-margin);
+    big.textContent = fmtHM(-margin);
     gaugeWrap.classList.add('status-bad');
     caption.textContent = '上限超過 — 一連続勤務 不成立';
     document.getElementById('bnOver').textContent = fmtHM(-margin) + `（${Math.round(-margin)}分）`;
