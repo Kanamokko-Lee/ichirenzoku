@@ -251,7 +251,8 @@
   .banner.bad{background:var(--red-dim);color:#ffd6d6;border:1px solid #8a2c2c;}
   .banner.stay{background:#1c3a5c;color:#cfe4ff;border:1px solid #2f5c8a;}
   .tl-table{width:100%;border-collapse:collapse;border:2px solid #6b7280;font-size:15px;background:var(--panel2,#1b2432);}
-  .tl-table th,.tl-table td{border:1px solid #4b5563;padding:5px 2px;text-align:center;white-space:nowrap;}
+  .tl-table th,.tl-table td{border:1px solid #4b5563;padding:5px 2px;text-align:center;white-space:nowrap;vertical-align:middle;}
+  .tl-table input{text-align:center;}
   .tl-table th{font-size:11px;color:var(--muted,#9aa4b2);font-weight:600;}
   .tl-table td{font-variant-numeric:tabular-nums;}
   .tl-table .fn{font-weight:700;}
@@ -259,7 +260,8 @@
   .tl-table .dur{font-weight:700;}
   .tl-table .lbl{font-size:10.5px;color:var(--muted,#9aa4b2);}
   .tl-table .fdur{font-size:10.5px;color:var(--muted,#9aa4b2);font-weight:400;}
-  .tl-table .tl-time{background:transparent;border:none;color:inherit;font:inherit;font-size:15px;text-align:center;width:100%;padding:0;}
+  .tl-table .tl-time{background:transparent;border:none;color:inherit;font:inherit;font-size:18px;font-weight:700;text-align:center;width:100%;min-width:0;padding:0;}
+  .tl-table .tl-time.diff{color:#fbbf24;background:rgba(251,191,36,.14);border-radius:4px;}
   .tl-table tr.req-head td{font-size:11px;color:var(--muted,#9aa4b2);font-weight:600;}
   .tl-table tr.dly-row td{font-weight:700;}
   .tl-table .dly-ok{color:#4ade80;}
@@ -799,11 +801,11 @@ function render(){
           <tr><th></th><th>S/U</th><th>B/O</th><th>B/I</th><th>業務終了</th><th></th><th></th></tr>
           <tr><td class="fn" id="tlFn1">--</td><td id="tlSu1">--:--</td><td><input class="tl-time" id="tlBo1" type="time" onchange="setAtd(${legs[0].id},this.value)"></td><td><input class="tl-time" id="tlBi1" type="time" onchange="setAta(${legs[0].id},this.value)"></td><td class="acc" id="tlEnd1">--:--</td><td class="fdur" id="tlBlk1">--+--</td><td class="lbl">飛行時間</td></tr>
           <tr class="rest-row"><td></td><td colspan="3" class="acc" id="tlRestRange">--:-- → --:--</td><td class="acc">＝</td><td class="dur" id="tlRestDur">--+--</td><td class="lbl">休養時間</td></tr>
-          <tr class="req-head" id="tlReqHead" style="display:none;"><td></td><td colspan="2">休養開始時刻</td><td colspan="2">必要休養時間</td><td colspan="2">休養完了時刻</td></tr>
-          <tr id="tlReqRow" style="display:none;"><td></td><td colspan="2"><span class="acc" id="tlReqStart">--:--</span></td><td colspan="2">＋ <span id="tlReqDur">--+--</span></td><td colspan="2"><span class="acc" id="tlReqUntil">--:--</span></td></tr>
+          <tr class="req-head" id="tlReqHead"><td></td><td colspan="2">休養開始時刻</td><td colspan="2">必要休養時間</td><td colspan="2">休養完了時刻</td></tr>
+          <tr id="tlReqRow"><td></td><td colspan="2"><span class="acc" id="tlReqStart">--:--</span></td><td colspan="2">＋ <span id="tlReqDur">--+--</span></td><td colspan="2"><span class="acc" id="tlReqUntil">--:--</span></td></tr>
           <tr><td class="fn" id="tlFn2">--</td><td class="acc" id="tlSu2">--:--</td><td><input class="tl-time" id="tlBo2" type="time" onchange="setAtd(${legs[1].id},this.value)"></td><td><input class="tl-time" id="tlBi2" type="time" onchange="setAta(${legs[1].id},this.value)"></td><td class="acc" id="tlEnd2">--:--</td><td class="fdur" id="tlBlk2">--+--</td><td class="lbl">飛行時間</td></tr>
-          <tr class="arrow-row" id="tlArrowRow" style="display:none;"><td></td><td>↓</td><td>↓</td><td></td><td></td><td></td><td></td></tr>
-          <tr class="dly-row" id="tlDlyRow" style="display:none;"><td>DLY Set</td><td id="tlDlySu">--:--</td><td id="tlDlyBo">--:--</td><td id="tlDlyBi">--:--</td><td id="tlDlyEnd">--:--</td><td colspan="2" id="tlDlyVerdict">--</td></tr>
+          <tr class="arrow-row" id="tlArrowRow"><td></td><td>↓</td><td>↓</td><td></td><td></td><td></td><td></td></tr>
+          <tr class="dly-row" id="tlDlyRow"><td>DLY Set</td><td id="tlDlySu">--:--</td><td id="tlDlyBo">--:--</td><td id="tlDlyBi">--:--</td><td id="tlDlyEnd">--:--</td><td colspan="2" id="tlDlyVerdict">--</td></tr>
         </table>
         <div class="gap-elig">
           <span class="badge" id="gapbadge-${i}">--</span>
@@ -851,7 +853,6 @@ function updateResults(){
   const r = compute();
 
   if(!r || r.incomplete){
-    setDlyRowsVisible(false);
     document.getElementById('gaugeCaption').textContent='STD・STAを入力してください';
     document.getElementById('marginBig').textContent='--';
     if(r && r.resolved){
@@ -908,16 +909,16 @@ function updateResults(){
     const gg = r.gaps[0];
     setT('tlFn1', t1.flightNo||'--');
     setT('tlSu1', fmtClock(t1.suCursor));
-    const bo1=document.getElementById('tlBo1'); if(bo1) bo1.value = legs[0].atd || legs[0].std || '';
-    const bi1=document.getElementById('tlBi1'); if(bi1) bi1.value = legs[0].ata || legs[0].sta || '';
+    const bo1=document.getElementById('tlBo1'); if(bo1){ bo1.value = legs[0].atd || legs[0].std || ''; bo1.classList.toggle('diff', !!legs[0].atd && !!legs[0].std && legs[0].atd!==legs[0].std); }
+    const bi1=document.getElementById('tlBi1'); if(bi1){ bi1.value = legs[0].ata || legs[0].sta || ''; bi1.classList.toggle('diff', !!legs[0].ata && !!legs[0].sta && legs[0].ata!==legs[0].sta); }
     setT('tlEnd1', fmtClock(t1.businessEndCursor));
     setT('tlBlk1', (t1.atdCursor!==null&&t1.effStaCursor!==null)?fmtHM(t1.effStaCursor-t1.atdCursor):'--+--');
     setT('tlRestRange', fmtClock(gg.start)+' → '+fmtClock(gg.end));
     setT('tlRestDur', fmtHM(gg.dur));
     setT('tlFn2', t2.flightNo||'--');
     setT('tlSu2', fmtClock(t2.suCursor));
-    const bo2=document.getElementById('tlBo2'); if(bo2) bo2.value = legs[1].atd || legs[1].std || '';
-    const bi2=document.getElementById('tlBi2'); if(bi2) bi2.value = legs[1].ata || legs[1].sta || '';
+    const bo2=document.getElementById('tlBo2'); if(bo2){ bo2.value = legs[1].atd || legs[1].std || ''; bo2.classList.toggle('diff', !!legs[1].atd && !!legs[1].std && legs[1].atd!==legs[1].std); }
+    const bi2=document.getElementById('tlBi2'); if(bi2){ bi2.value = legs[1].ata || legs[1].sta || ''; bi2.classList.toggle('diff', !!legs[1].ata && !!legs[1].sta && legs[1].ata!==legs[1].sta); }
     setT('tlEnd2', fmtClock(t2.businessEndCursor));
     setT('tlBlk2', (t2.atdCursor!==null&&t2.effStaCursor!==null)?fmtHM(t2.effStaCursor-t2.atdCursor):'--+--');
   }
@@ -1042,7 +1043,7 @@ function updateResults(){
     } else {
       rrOk.style.display='none';
     }
-    setDlyRowsVisible(false);
+    fillReqDlyRows(r, restH, fdpLimit, blockOk, false);
     saveState();
     return;
   }
@@ -1076,37 +1077,7 @@ function updateResults(){
   document.getElementById('reqRestUntil').textContent = fmtClock(restUntil);
   document.getElementById('reqNextSu').textContent = fmtClock(restUntil);
   document.getElementById('reqNextStd').textContent = fmtClock(restUntil+nextLead);
-  // 表のDLY Set行: 必要休養を確保できる時刻まで帰りを遅らせた場合の時刻と成立可否
-  if(r.resolved.length===2 && r.gaps[0]){
-    const leg2 = r.resolved[1];
-    const totalRestMin = restH*60 + woclAdd + tzAdd;
-    const dlySu = restUntil;
-    const dlyDelta = dlySu - leg2.suCursor;
-    const dlyBo = dlySu + (leg2.stdCursor - leg2.suCursor);
-    const dlyBi = dlyBo + (leg2.effStaCursor - leg2.atdCursor);
-    const dlyEnd = dlyBi + leg2.bufferMin;
-    let dedDly = 0;
-    if(totalRestMin>=3*60){
-      dedDly = totalRestMin/2;
-      if(totalRestMin>=10*60 && !gapForceHalf[0]){
-        const cov = localNightMaxCoverage(restStart, dlySu, r.gaps[0].restOffset);
-        if(cov>=8*60 && r.gaps[0].tzDiffOk) dedDly = totalRestMin;
-      }
-    }
-    const fdpDly = (leg2.effStaCursor + dlyDelta - r.first.suCursor) - dedDly;
-    const dlyOk = fdpDly <= fdpLimit && blockOk;
-    const setT2 = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
-    setT2('tlReqStart', fmtClock(restStart));
-    setT2('tlReqDur', fmtHM(totalRestMin));
-    setT2('tlReqUntil', fmtClock(restUntil));
-    setT2('tlDlySu', fmtClock(dlySu));
-    setT2('tlDlyBo', fmtClock(dlyBo));
-    setT2('tlDlyBi', fmtClock(dlyBi));
-    setT2('tlDlyEnd', fmtClock(dlyEnd));
-    const verdictEl = document.getElementById('tlDlyVerdict');
-    if(verdictEl){ verdictEl.textContent = dlyOk ? '一連続勤務成立' : 'ステイ'; verdictEl.className = dlyOk ? 'dly-ok' : 'dly-stay'; }
-    setDlyRowsVisible(true);
-  }
+  fillReqDlyRows(r, restH, fdpLimit, blockOk, true);
   saveState();
 }
 
@@ -1163,10 +1134,55 @@ function showDelayGuide(r, restH, fdpLimit, blockOk){
 }
 
 
-function setDlyRowsVisible(v){
-  ['tlReqHead','tlReqRow','tlArrowRow','tlDlyRow'].forEach(id=>{
-    const e=document.getElementById(id); if(e) e.style.display = v?'':'none';
-  });
+
+/* 必要休養（所要休養＋WOCL加算＋時差加算）の計算。超過パネルと表のDLY Set行で共用。 */
+function calcRequiredRest(r, restH){
+  const leg1 = r.resolved[0];
+  const restStart = leg1.businessEndCursor;
+  let woclAdd = 0;
+  const woclMinutesTotal = overlapsWOCL(leg1.suCursor, restStart, r.offset).minutes;
+  if(woclMinutesTotal>0) woclAdd = woclMinutesTotal>=120 ? 240 : 120;
+  const restLocOffset = gapRestOffset[0]!==undefined ? gapRestOffset[0] : r.offset;
+  let tzT = Math.abs(restLocOffset - r.offset);
+  if(tzT>12) tzT = 24 - tzT;
+  const tzAdd = (tzT>=2) ? Math.ceil(tzT)*30 : 0;
+  const total = restH*60 + woclAdd + tzAdd;
+  return { restStart, woclAdd, tzAdd, total, until: restStart + total };
+}
+/* 表の必要休養行を埋める。needDly=false のとき DLY Set行は空欄。 */
+function fillReqDlyRows(r, restH, fdpLimit, blockOk, needDly){
+  if(!r || r.resolved.length!==2 || !r.gaps[0]) return;
+  const setT = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+  const rr = calcRequiredRest(r, restH);
+  setT('tlReqStart', fmtClock(rr.restStart));
+  setT('tlReqDur', fmtHM(rr.total));
+  setT('tlReqUntil', fmtClock(rr.until));
+  if(!needDly){
+    setT('tlDlySu',''); setT('tlDlyBo',''); setT('tlDlyBi',''); setT('tlDlyEnd',''); setT('tlDlyVerdict','');
+    return;
+  }
+  const leg2 = r.resolved[1];
+  const dlySu = rr.until;
+  const dlyDelta = dlySu - leg2.suCursor;
+  const dlyBo = dlySu + (leg2.stdCursor - leg2.suCursor);
+  const dlyBi = dlyBo + (leg2.effStaCursor - leg2.atdCursor);
+  const dlyEnd = dlyBi + leg2.bufferMin;
+  let dedDly = 0;
+  if(rr.total>=3*60){
+    dedDly = rr.total/2;
+    if(rr.total>=10*60 && !gapForceHalf[0]){
+      const cov = localNightMaxCoverage(rr.restStart, dlySu, r.gaps[0].restOffset);
+      if(cov>=8*60 && r.gaps[0].tzDiffOk) dedDly = rr.total;
+    }
+  }
+  const fdpDly = (leg2.effStaCursor + dlyDelta - r.first.suCursor) - dedDly;
+  const dlyOk = fdpDly <= fdpLimit && blockOk;
+  setT('tlDlySu', fmtClock(dlySu));
+  setT('tlDlyBo', fmtClock(dlyBo));
+  setT('tlDlyBi', fmtClock(dlyBi));
+  setT('tlDlyEnd', fmtClock(dlyEnd));
+  const verdictEl = document.getElementById('tlDlyVerdict');
+  if(verdictEl){ verdictEl.textContent = dlyOk ? '一連続勤務成立' : 'ステイ'; verdictEl.className = dlyOk ? 'dly-ok' : 'dly-stay'; }
 }
 
 /* ============ 参照表描画 ============ */
