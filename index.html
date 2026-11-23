@@ -286,6 +286,7 @@
   .tl-table input{vertical-align:middle;}
   .tl-table tr.head-row th{background:#f5c15c;color:#241c08;}
   .tl-table tr.req-head td{background:#f5c15c;color:#241c08;font-weight:600;}
+  .tl-table tr.req-head td.no-fill{background:transparent;}
   .tl-table .dly-red{color:#f87171;}
   .delay-guide{background:#2a1a10;border:1px solid #8a5a2a;border-radius:8px;padding:10px 12px;font-size:13.5px;line-height:1.6;margin-bottom:10px;color:#ffe1bd;}
   .delay-guide b{color:#ffc46b;font-size:16px;}
@@ -791,7 +792,7 @@ function renderUnified(wrap){
       <tr class="head-row"><th></th><th>S/U</th><th>STD・B/O</th><th>STA・B/I</th><th>業務終了</th><th></th><th></th></tr>
       ${legBlockRows(legs[0],0)}
       <tr class="rest-row"><td></td><td colspan="3" class="acc" id="tlRestRange">--:-- → --:--</td><td class="acc">＝</td><td class="dur" id="tlRestDur">--+--</td><td class="lbl">休養時間</td></tr>
-      <tr class="req-head" id="tlReqHead"><td></td><td></td><td>休養開始時刻</td><td></td><td>必要休養時間</td><td colspan="2">休養完了時刻</td></tr>
+      <tr class="req-head" id="tlReqHead"><td class="no-fill"></td><td class="no-fill"></td><td>休養開始時刻</td><td></td><td>必要休養時間</td><td colspan="2">休養完了時刻</td></tr>
       <tr id="tlReqRow"><td></td><td></td><td><span class="acc" id="tlReqStart">--:--</span></td><td>＋</td><td><span id="tlReqDur">--+--</span></td><td colspan="2"><span class="acc" id="tlReqUntil">--:--</span></td></tr>
       ${legBlockRows(legs[1],1)}
       <tr class="arrow-row" id="tlArrowRow"><td></td><td>↓</td><td>↓</td><td></td><td></td><td></td><td></td></tr>
