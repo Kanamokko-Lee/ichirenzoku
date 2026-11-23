@@ -278,7 +278,10 @@
   .tl-table .dly-ok{color:#4ade80;}
   .tl-table .dly-stay{color:#7dd3fc;}
   .tl-table tr.arrow-row td{border-top:none;border-bottom:none;color:var(--muted,#9aa4b2);font-size:12px;padding:1px 2px;}
-  .tl-table tr.rest-row td{background:rgba(192,132,252,.07);}
+  .tl-table tr.rest-row td{background:rgba(192,132,252,.07);padding-top:12px;padding-bottom:12px;}
+  .tl-table tr.head-row th{background:#f5c15c;color:#241c08;}
+  .tl-table tr.req-head td{background:#f5c15c;color:#241c08;font-weight:600;}
+  .tl-table .dly-red{color:#f87171;}
   .delay-guide{background:#2a1a10;border:1px solid #8a5a2a;border-radius:8px;padding:10px 12px;font-size:13.5px;line-height:1.6;margin-bottom:10px;color:#ffe1bd;}
   .delay-guide b{color:#ffc46b;font-size:16px;}
   .banner b{font-family:var(--mono);}
@@ -771,7 +774,7 @@ function legBlockRows(l, i){
       <td${fill}><span class="cell-lab">B/I</span><input class="tl-time" id="tlBi${n}" type="time" onchange="setAta(${l.id},this.value)"></td>
       <td class="acc end-cell" id="tlEnd${n}">--:--</td>
       <td class="fdur" id="tlBlk${n}">--+--</td>
-      <td class="lbl">飛行時間</td>
+      <td class="lbl">Block Time</td>
     </tr>
     <tr><td class="meta-cell" colspan="7">${legMetaHTML(l)}</td></tr>`;
 }
@@ -780,7 +783,7 @@ function renderUnified(wrap){
   holder.innerHTML = `
     <table class="tl-table">
       <colgroup><col style="width:11%"><col style="width:13%"><col style="width:20%"><col style="width:20%"><col style="width:15%"><col style="width:9%"><col style="width:12%"></colgroup>
-      <tr><th></th><th>S/U</th><th>STD・B/O</th><th>STA・B/I</th><th>業務終了</th><th></th><th></th></tr>
+      <tr class="head-row"><th></th><th>S/U</th><th>STD・B/O</th><th>STA・B/I</th><th>業務終了</th><th></th><th></th></tr>
       ${legBlockRows(legs[0],0)}
       <tr class="rest-row"><td></td><td colspan="3" class="acc" id="tlRestRange">--:-- → --:--</td><td class="acc">＝</td><td class="dur" id="tlRestDur">--+--</td><td class="lbl">休養時間</td></tr>
       <tr class="req-head" id="tlReqHead"><td></td><td colspan="2">休養開始時刻</td><td colspan="2">必要休養時間</td><td colspan="2">休養完了時刻</td></tr>
@@ -1230,6 +1233,7 @@ function fillReqDlyRows(r, restH, fdpLimit, blockOk, needDly){
   setT('tlReqStart', fmtClock(rr.restStart));
   setT('tlReqDur', fmtHM(rr.total));
   setT('tlReqUntil', fmtClock(rr.until));
+  ['tlDlySu','tlDlyBo'].forEach(id=>{ const e=document.getElementById(id); if(e) e.classList.toggle('dly-red', needDly); });
   if(!needDly){
     setT('tlDlySu',''); setT('tlDlyBo',''); setT('tlDlyBi',''); setT('tlDlyEnd',''); setT('tlDlyVerdict','');
     return;
