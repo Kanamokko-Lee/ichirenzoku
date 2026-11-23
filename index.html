@@ -250,6 +250,15 @@
   .banner.ok{background:var(--green-dim);color:#c9ffe4;border:1px solid #2a7a54;}
   .banner.bad{background:var(--red-dim);color:#ffd6d6;border:1px solid #8a2c2c;}
   .banner.stay{background:#1c3a5c;color:#cfe4ff;border:1px solid #2f5c8a;}
+  .tl-table{width:100%;border-collapse:collapse;border:2px solid #6b7280;font-size:15px;background:var(--panel2,#1b2432);}
+  .tl-table th,.tl-table td{border:1px solid #4b5563;padding:5px 2px;text-align:center;white-space:nowrap;}
+  .tl-table th{font-size:11px;color:var(--muted,#9aa4b2);font-weight:600;}
+  .tl-table td{font-variant-numeric:tabular-nums;}
+  .tl-table .fn{font-weight:700;}
+  .tl-table .acc{color:#c084fc;font-weight:700;}
+  .tl-table .dur{font-weight:700;}
+  .tl-table .lbl{font-size:10.5px;color:var(--muted,#9aa4b2);}
+  .tl-table tr.rest-row td{background:rgba(192,132,252,.07);}
   .delay-guide{background:#2a1a10;border:1px solid #8a5a2a;border-radius:8px;padding:10px 12px;font-size:13.5px;line-height:1.6;margin-bottom:10px;color:#ffe1bd;}
   .delay-guide b{color:#ffc46b;font-size:16px;}
   .banner b{font-family:var(--mono);}
@@ -788,7 +797,20 @@ function render(){
       gapDiv.id=`gapinfo-${i}`;
       const globalOff = parseFloat(document.getElementById('offset')?.value)||9;
       const offVal = gapRestOffset[i]!==undefined?gapRestOffset[i]:globalOff;
-      gapDiv.innerHTML = `
+      if(legs.length===2 && i===0){
+        gapDiv.innerHTML = `
+        <table class="tl-table">
+          <tr><th></th><th>S/U</th><th>B/O</th><th>B/I</th><th>業務終了</th><th></th><th></th></tr>
+          <tr><td class="fn" id="tlFn1">--</td><td id="tlSu1">--:--</td><td id="tlBo1">--:--</td><td id="tlBi1">--:--</td><td class="acc" id="tlEnd1">--:--</td><td class="dur" id="tlBlk1">--+--</td><td class="lbl">飛行時間</td></tr>
+          <tr class="rest-row"><td></td><td colspan="3" class="acc" id="tlRestRange">--:-- → --:--</td><td class="acc">＝</td><td class="dur" id="tlRestDur">--+--</td><td class="lbl">休養時間</td></tr>
+          <tr><td class="fn" id="tlFn2">--</td><td class="acc" id="tlSu2">--:--</td><td id="tlBo2">--:--</td><td id="tlBi2">--:--</td><td class="acc" id="tlEnd2">--:--</td><td class="dur" id="tlBlk2">--+--</td><td class="lbl">飛行時間</td></tr>
+        </table>
+        <div class="gap-elig">
+          <span class="badge" id="gapbadge-${i}">--</span>
+          <label class="checkline"><input type="checkbox" ${gapForceHalf[i]?'checked':''} onchange="setForceHalf(${i},this.checked)">自動判定無視・半分減算固定</label>
+        </div>`;
+      } else {
+        gapDiv.innerHTML = `
         <div class="gap-times2">
           <div><span class="gap-cap">休養開始</span><b id="gapstart-${i}">--:--</b></div>
           <span class="gap-dash">－</span>
@@ -799,6 +821,7 @@ function render(){
           <span class="badge" id="gapbadge-${i}">--</span>
           <label class="checkline"><input type="checkbox" ${gapForceHalf[i]?'checked':''} onchange="setForceHalf(${i},this.checked)">自動判定無視・半分減算固定</label>
         </div>`;
+      }
       // 休養ボックスは「行き」と「帰り」の間に配置する
       const nextLegEl = legsRow.children[i+1];
       if(nextLegEl) legsRow.insertBefore(gapDiv, nextLegEl);
@@ -876,6 +899,27 @@ function updateResults(){
       else { badgeEl.className='badge no'; badgeEl.textContent='半分減算（休養10h未満）'; }
     }
   });
+
+  // タイムライン表（行き／休養／帰り）を埋める
+  if(r.resolved.length===2 && r.gaps[0]){
+    const setT = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+    const [t1,t2] = r.resolved;
+    const gg = r.gaps[0];
+    setT('tlFn1', t1.flightNo||'--');
+    setT('tlSu1', fmtClock(t1.suCursor));
+    setT('tlBo1', fmtClock(t1.atdCursor));
+    setT('tlBi1', fmtClock(t1.effStaCursor));
+    setT('tlEnd1', fmtClock(t1.businessEndCursor));
+    setT('tlBlk1', (t1.atdCursor!==null&&t1.effStaCursor!==null)?fmtHM(t1.effStaCursor-t1.atdCursor):'--+--');
+    setT('tlRestRange', fmtClock(gg.start)+' → '+fmtClock(gg.end));
+    setT('tlRestDur', fmtHM(gg.dur));
+    setT('tlFn2', t2.flightNo||'--');
+    setT('tlSu2', fmtClock(t2.suCursor));
+    setT('tlBo2', fmtClock(t2.atdCursor));
+    setT('tlBi2', fmtClock(t2.effStaCursor));
+    setT('tlEnd2', fmtClock(t2.businessEndCursor));
+    setT('tlBlk2', (t2.atdCursor!==null&&t2.effStaCursor!==null)?fmtHM(t2.effStaCursor-t2.atdCursor):'--+--');
+  }
 
   let deductionBasis = '(減算なし)';
   if(chosenGapIdx!==null && r.gaps[chosenGapIdx]){
