@@ -250,6 +250,8 @@
   .banner.ok{background:var(--green-dim);color:#c9ffe4;border:1px solid #2a7a54;}
   .banner.bad{background:var(--red-dim);color:#ffd6d6;border:1px solid #8a2c2c;}
   .banner.stay{background:#1c3a5c;color:#cfe4ff;border:1px solid #2f5c8a;}
+  .delay-guide{background:#2a1a10;border:1px solid #8a5a2a;border-radius:8px;padding:10px 12px;font-size:13.5px;line-height:1.6;margin-bottom:10px;color:#ffe1bd;}
+  .delay-guide b{color:#ffc46b;font-size:16px;}
   .banner b{font-family:var(--mono);}
 
   .rr-title{font-size:11.5px;color:var(--muted);line-height:1.4;margin:0 0 6px;}
@@ -352,7 +354,7 @@
   <div class="results-row">
     <div class="results-left">
       <div class="gauge" id="gaugeWrap">
-        <span class="big" id="marginBig">--</span><span class="unit">分の余裕</span>
+        <span class="big" id="marginBig">--</span><span class="unit" id="gaugeUnit">分の余裕</span>
       </div>
       <p class="gauge-caption" id="gaugeCaption">区間を入力してください</p>
 
@@ -380,13 +382,14 @@
     </div>
 
     <div class="results-right">
-      <p class="note" style="margin:0 0 7px;">ATD（実出発）・ATA（実到着）は、各区間の STD / STA の下で入力します。ATDを変更しても STA は変わりません。休養開始・休養時間・余裕は ATA（実到着）基準で計算します（ATAがSTAと同じ場合は予定どおりの計算です）。</p>
+      <p class="note" style="margin:0 0 7px;">ATD（実出発）・ATA（実到着）は、各区間の STD / STA の下で入力します。ATDを変更しても STA は変わりません。休養開始・休養時間・余裕は ATA（実到着）基準、乗務時間は ATD〜ATA（実績）基準で計算します（ATD・ATAがSTD・STAと同じ場合は予定どおりの計算です）。</p>
 
       <div id="rrOk" class="banner ok" style="display:none;">
         <b id="rrOkMsg">--</b>
       </div>
 
       <div id="rrExceeded" style="display:none;">
+        <div class="delay-guide" id="delayGuide" style="display:none;"></div>
         <p class="rr-title">上限超過時に必要な休養<br>（連続<span id="reqRestBase">--</span>h + WOCL加算<span id="reqRestWocl">--</span> + 時差加算<span id="reqRestTz">--</span>）</p>
         <div class="eq-row">
           <div class="stat"><div class="stat-label">休養開始時刻</div><div class="stat-val" id="reqRestStart">--</div></div>
@@ -601,6 +604,15 @@ function compute(){
     const leadMin = (parseFloat(l.suLeadH)||0)*60 + (parseFloat(l.suLeadM)||0);
     const suCursor = stdCursor!==null ? stdCursor - leadMin : null;
     const staCursor = advance(l.sta, stdCursor!==null?stdCursor:(suCursor||0));
+    // 実出発 ATD の通算分（STDの前後12時間の範囲で最も近い時刻を取る）
+    let atdCursor = null;
+    if(stdCursor!==null && (l.atd || l.std)){
+      const [ah,am] = (l.atd || l.std).split(':').map(Number);
+      let cand = Math.floor(stdCursor/1440)*1440 + ah*60 + am;
+      if(cand < stdCursor-720) cand += 1440;
+      else if(cand >= stdCursor+720) cand -= 1440;
+      atdCursor = cand;
+    }
     // 実効到着 = ATA（実到着）。STAは時刻表の予定時刻なので計算の基準にしない。
     // ATAがSTAと同じ（未変更）の場合は従来どおり予定時刻での計算になる。
     const effStaCursor = advance(l.ata || l.sta, stdCursor!==null?stdCursor:(suCursor||0));
@@ -610,7 +622,7 @@ function compute(){
     else bufferMin = l.customs==='YES'?BUFFER.OTHER_YES:BUFFER.OTHER_NO;
     const businessEndCursor = effStaCursor!==null ? effStaCursor+bufferMin : null;
 
-    resolved.push({...l, stdCursor, suCursor, staCursor, effStaCursor, bufferMin, businessEndCursor});
+    resolved.push({...l, stdCursor, suCursor, staCursor, atdCursor, effStaCursor, bufferMin, businessEndCursor});
     cursor = businessEndCursor!==null?businessEndCursor:cursor;
   });
 
@@ -890,10 +902,10 @@ function updateResults(){
   const blockLimit = limits[0];
   const margin = fdpLimit - fdpAfter;
 
-  // 乗務時間（ブロックタイム）: 乗務(REV)区間のSTD〜STA合計。OM 5.8.2.2.1は乗務時間/FDPの両方を制限する。
+  // 乗務時間（ブロックタイム）: 乗務(REV)区間のATD〜ATA（実績）合計。OM 5.8.2.2.1は乗務時間/FDPの両方を制限する。
   let blockTime = 0;
   r.resolved.forEach(l=>{
-    if(l.type==='REV' && l.stdCursor!==null && l.staCursor!==null) blockTime += (l.staCursor - l.stdCursor);
+    if(l.type==='REV' && l.atdCursor!==null && l.effStaCursor!==null) blockTime += (l.effStaCursor - l.atdCursor);
   });
   const blockOk = blockTime <= blockLimit;
 
@@ -908,6 +920,7 @@ function updateResults(){
   kvBlock.textContent = `${fmtHM(blockTime)} / ${fmtHM(blockLimit)}`;
   kvBlock.className = blockOk ? 'v' : 'v bad';
 
+  document.getElementById('gaugeUnit').textContent = margin<0 ? '分の超過' : '分の余裕';
   const gaugeWrap = document.getElementById('gaugeWrap');
   const big = document.getElementById('marginBig');
   const caption = document.getElementById('gaugeCaption');
@@ -944,7 +957,7 @@ function updateResults(){
     const legChecks = r.resolved.map((l,i)=>{
       if(l.suCursor===null || l.staCursor===null || l.stdCursor===null || l.effStaCursor===null) return null;
       const fdpLeg = l.effStaCursor - l.suCursor;
-      const blkLeg = l.staCursor - l.stdCursor;
+      const blkLeg = l.effStaCursor - l.atdCursor;
       const bandLeg = localBand(l.suCursor, r.offset);
       const limLeg = FDP_TABLE[bandLeg][2];
       return {i, fdpLeg, blkLeg, fdpOk: fdpLeg<=limLeg[1], blkOk: blkLeg<=limLeg[0], lim: limLeg};
@@ -1017,7 +1030,60 @@ function updateResults(){
   document.getElementById('reqRestUntil').textContent = fmtClock(restUntil);
   document.getElementById('reqNextSu').textContent = fmtClock(restUntil);
   document.getElementById('reqNextStd').textContent = fmtClock(restUntil+nextLead);
+  showDelayGuide(r, restH, fdpLimit, blockOk);
   saveState();
+}
+
+
+/* 不成立時: 帰り(区間2)を何分遅らせれば成立するかを探す。
+   遅延は区間2全体（出頭・STD・到着）を同じだけ後ろへずらす前提。
+   休養が所要休養(restH)に達したらステイパターンとして成立する。 */
+function findDelayGuide(r, restH, fdpLimit, blockOk){
+  const g = r.gaps && r.gaps[0];
+  const leg2 = r.resolved[1];
+  if(!g || !leg2 || leg2.suCursor===null || leg2.stdCursor===null) return null;
+  const legOk = r.resolved.every(l=>{
+    if(l.suCursor===null || l.effStaCursor===null || l.atdCursor===null) return false;
+    const lim = FDP_TABLE[localBand(l.suCursor, r.offset)][2];
+    return (l.effStaCursor - l.suCursor) <= lim[1] && (l.effStaCursor - l.atdCursor) <= lim[0];
+  });
+  for(let delta=1; delta<=24*60; delta++){
+    const dur = g.dur + delta;
+    if(dur >= restH*60){
+      return {kind: legOk?'stay':'stayNg', delta, su: leg2.suCursor+delta, std: leg2.stdCursor+delta, dur};
+    }
+    if(!blockOk) continue; // 乗務時間(合計)超過は遅延では解消しない
+    let ded = 0;
+    if(dur>=3*60){
+      ded = dur/2;
+      if(dur>=10*60 && !gapForceHalf[0]){
+        const cov = localNightMaxCoverage(g.start, g.end+delta, g.restOffset);
+        if(cov>=8*60 && g.tzDiffOk) ded = dur;
+      }
+    }
+    const fdp = (r.last.effStaCursor + delta - r.first.suCursor) - ded;
+    if(fdp <= fdpLimit){
+      return {kind:'fix', delta, su: leg2.suCursor+delta, std: leg2.stdCursor+delta, dur, fdp, margin: fdpLimit-fdp, dedFull: ded===dur};
+    }
+  }
+  return null;
+}
+function showDelayGuide(r, restH, fdpLimit, blockOk){
+  const el = document.getElementById('delayGuide');
+  if(!el) return;
+  const guide = findDelayGuide(r, restH, fdpLimit, blockOk);
+  if(!guide){ el.style.display='none'; return; }
+  el.style.display='block';
+  if(guide.kind==='fix'){
+    el.innerHTML = `一連続勤務として成立させるには、帰りの出頭を <b>${fmtClock(guide.su)}</b>（STD <b>${fmtClock(guide.std)}</b>）まで遅らせてください。`
+      + `あと <b>${guide.delta}分</b> 遅らせることで休養 <b>${fmtHM(guide.dur)}</b> が確保でき${guide.dedFull?'（休養の全額減算が効きます）':'（休養の半分減算です）'}、`
+      + `飛行勤務時間は ${fmtHM(guide.fdp)} / 上限 ${fmtHM(fdpLimit)}、余裕 ${Math.round(guide.margin)}分 になります。`;
+  } else if(guide.kind==='stay'){
+    el.innerHTML = `帰りの出頭を <b>${fmtClock(guide.su)}</b>（STD <b>${fmtClock(guide.std)}</b>）まで遅らせると、休養が所要休養（${restH}時間）に達します。`
+      + `この場合は一連続勤務としては組めませんが、行きと帰りが別々の一連続勤務になる <b>ステイパターン</b> として成立します（各区間とも単独で上限内です）。`;
+  } else {
+    el.innerHTML = `帰りの出発を遅らせても成立しません（区間単独でも上限を超えています）。下の必要休養を取って、次の勤務として組み直してください。`;
+  }
 }
 
 /* ============ 参照表描画 ============ */
