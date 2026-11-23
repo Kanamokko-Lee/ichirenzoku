@@ -258,6 +258,13 @@
   .tl-table .acc{color:#c084fc;font-weight:700;}
   .tl-table .dur{font-weight:700;}
   .tl-table .lbl{font-size:10.5px;color:var(--muted,#9aa4b2);}
+  .tl-table .fdur{font-size:10.5px;color:var(--muted,#9aa4b2);font-weight:400;}
+  .tl-table .tl-time{background:transparent;border:none;color:inherit;font:inherit;font-size:15px;text-align:center;width:100%;padding:0;}
+  .tl-table tr.req-head td{font-size:11px;color:var(--muted,#9aa4b2);font-weight:600;}
+  .tl-table tr.dly-row td{font-weight:700;}
+  .tl-table .dly-ok{color:#4ade80;}
+  .tl-table .dly-stay{color:#7dd3fc;}
+  .tl-table tr.arrow-row td{border-top:none;border-bottom:none;color:var(--muted,#9aa4b2);font-size:12px;padding:1px 2px;}
   .tl-table tr.rest-row td{background:rgba(192,132,252,.07);}
   .delay-guide{background:#2a1a10;border:1px solid #8a5a2a;border-radius:8px;padding:10px 12px;font-size:13.5px;line-height:1.6;margin-bottom:10px;color:#ffe1bd;}
   .delay-guide b{color:#ffc46b;font-size:16px;}
@@ -391,7 +398,7 @@
     </div>
 
     <div class="results-right">
-      <p class="note" style="margin:0 0 7px;">ATD（実出発）・ATA（実到着）は、各区間の STD / STA の下で入力します。ATDを変更しても STA は変わりません。休養開始・休養時間・余裕は ATA（実到着）基準、乗務時間は ATD〜ATA（実績）基準で計算します（ATD・ATAがSTD・STAと同じ場合は予定どおりの計算です）。</p>
+      <p class="note" style="margin:0 0 7px;">B/O（実出発）・B/I（実到着）は、行きと帰りの間の表の中で入力します。B/Oを変更しても STA は変わりません。休養開始・休養時間・余裕は B/I（実到着）基準、飛行時間・乗務時間は B/O〜B/I（実績）基準で計算します（B/O・B/IがSTD・STAと同じ場合は予定どおりの計算です）。</p>
 
       <div id="rrOk" class="banner ok" style="display:none;">
         <b id="rrOkMsg">--</b>
@@ -749,17 +756,6 @@ function render(){
         </div>
       </div>
 
-      <div class="times2-row">
-        <div class="field">
-          <label>ATD</label>
-          <input class="time-actual" type="time" value="${l.atd || l.std || ''}" onchange="setAtd(${l.id},this.value)">
-        </div>
-        <span class="dash">－</span>
-        <div class="field">
-          <label>ATA</label>
-          <input class="time-actual ata" type="time" value="${l.ata || l.sta || ''}" onchange="setAta(${l.id},this.value)">
-        </div>
-      </div>
 
       <div class="meta-row">
         <div class="su-compact">
@@ -801,9 +797,13 @@ function render(){
         gapDiv.innerHTML = `
         <table class="tl-table">
           <tr><th></th><th>S/U</th><th>B/O</th><th>B/I</th><th>業務終了</th><th></th><th></th></tr>
-          <tr><td class="fn" id="tlFn1">--</td><td id="tlSu1">--:--</td><td id="tlBo1">--:--</td><td id="tlBi1">--:--</td><td class="acc" id="tlEnd1">--:--</td><td class="dur" id="tlBlk1">--+--</td><td class="lbl">飛行時間</td></tr>
+          <tr><td class="fn" id="tlFn1">--</td><td id="tlSu1">--:--</td><td><input class="tl-time" id="tlBo1" type="time" onchange="setAtd(${legs[0].id},this.value)"></td><td><input class="tl-time" id="tlBi1" type="time" onchange="setAta(${legs[0].id},this.value)"></td><td class="acc" id="tlEnd1">--:--</td><td class="fdur" id="tlBlk1">--+--</td><td class="lbl">飛行時間</td></tr>
           <tr class="rest-row"><td></td><td colspan="3" class="acc" id="tlRestRange">--:-- → --:--</td><td class="acc">＝</td><td class="dur" id="tlRestDur">--+--</td><td class="lbl">休養時間</td></tr>
-          <tr><td class="fn" id="tlFn2">--</td><td class="acc" id="tlSu2">--:--</td><td id="tlBo2">--:--</td><td id="tlBi2">--:--</td><td class="acc" id="tlEnd2">--:--</td><td class="dur" id="tlBlk2">--+--</td><td class="lbl">飛行時間</td></tr>
+          <tr class="req-head" id="tlReqHead" style="display:none;"><td></td><td colspan="2">休養開始時刻</td><td colspan="2">必要休養時間</td><td colspan="2">休養完了時刻</td></tr>
+          <tr id="tlReqRow" style="display:none;"><td></td><td colspan="2"><span class="acc" id="tlReqStart">--:--</span></td><td colspan="2">＋ <span id="tlReqDur">--+--</span></td><td colspan="2"><span class="acc" id="tlReqUntil">--:--</span></td></tr>
+          <tr><td class="fn" id="tlFn2">--</td><td class="acc" id="tlSu2">--:--</td><td><input class="tl-time" id="tlBo2" type="time" onchange="setAtd(${legs[1].id},this.value)"></td><td><input class="tl-time" id="tlBi2" type="time" onchange="setAta(${legs[1].id},this.value)"></td><td class="acc" id="tlEnd2">--:--</td><td class="fdur" id="tlBlk2">--+--</td><td class="lbl">飛行時間</td></tr>
+          <tr class="arrow-row" id="tlArrowRow" style="display:none;"><td></td><td>↓</td><td>↓</td><td></td><td></td><td></td><td></td></tr>
+          <tr class="dly-row" id="tlDlyRow" style="display:none;"><td>DLY Set</td><td id="tlDlySu">--:--</td><td id="tlDlyBo">--:--</td><td id="tlDlyBi">--:--</td><td id="tlDlyEnd">--:--</td><td colspan="2" id="tlDlyVerdict">--</td></tr>
         </table>
         <div class="gap-elig">
           <span class="badge" id="gapbadge-${i}">--</span>
@@ -851,6 +851,7 @@ function updateResults(){
   const r = compute();
 
   if(!r || r.incomplete){
+    setDlyRowsVisible(false);
     document.getElementById('gaugeCaption').textContent='STD・STAを入力してください';
     document.getElementById('marginBig').textContent='--';
     if(r && r.resolved){
@@ -907,16 +908,16 @@ function updateResults(){
     const gg = r.gaps[0];
     setT('tlFn1', t1.flightNo||'--');
     setT('tlSu1', fmtClock(t1.suCursor));
-    setT('tlBo1', fmtClock(t1.atdCursor));
-    setT('tlBi1', fmtClock(t1.effStaCursor));
+    const bo1=document.getElementById('tlBo1'); if(bo1) bo1.value = legs[0].atd || legs[0].std || '';
+    const bi1=document.getElementById('tlBi1'); if(bi1) bi1.value = legs[0].ata || legs[0].sta || '';
     setT('tlEnd1', fmtClock(t1.businessEndCursor));
     setT('tlBlk1', (t1.atdCursor!==null&&t1.effStaCursor!==null)?fmtHM(t1.effStaCursor-t1.atdCursor):'--+--');
     setT('tlRestRange', fmtClock(gg.start)+' → '+fmtClock(gg.end));
     setT('tlRestDur', fmtHM(gg.dur));
     setT('tlFn2', t2.flightNo||'--');
     setT('tlSu2', fmtClock(t2.suCursor));
-    setT('tlBo2', fmtClock(t2.atdCursor));
-    setT('tlBi2', fmtClock(t2.effStaCursor));
+    const bo2=document.getElementById('tlBo2'); if(bo2) bo2.value = legs[1].atd || legs[1].std || '';
+    const bi2=document.getElementById('tlBi2'); if(bi2) bi2.value = legs[1].ata || legs[1].sta || '';
     setT('tlEnd2', fmtClock(t2.businessEndCursor));
     setT('tlBlk2', (t2.atdCursor!==null&&t2.effStaCursor!==null)?fmtHM(t2.effStaCursor-t2.atdCursor):'--+--');
   }
@@ -1041,6 +1042,7 @@ function updateResults(){
     } else {
       rrOk.style.display='none';
     }
+    setDlyRowsVisible(false);
     saveState();
     return;
   }
@@ -1074,7 +1076,37 @@ function updateResults(){
   document.getElementById('reqRestUntil').textContent = fmtClock(restUntil);
   document.getElementById('reqNextSu').textContent = fmtClock(restUntil);
   document.getElementById('reqNextStd').textContent = fmtClock(restUntil+nextLead);
-  showDelayGuide(r, restH, fdpLimit, blockOk);
+  // 表のDLY Set行: 必要休養を確保できる時刻まで帰りを遅らせた場合の時刻と成立可否
+  if(r.resolved.length===2 && r.gaps[0]){
+    const leg2 = r.resolved[1];
+    const totalRestMin = restH*60 + woclAdd + tzAdd;
+    const dlySu = restUntil;
+    const dlyDelta = dlySu - leg2.suCursor;
+    const dlyBo = dlySu + (leg2.stdCursor - leg2.suCursor);
+    const dlyBi = dlyBo + (leg2.effStaCursor - leg2.atdCursor);
+    const dlyEnd = dlyBi + leg2.bufferMin;
+    let dedDly = 0;
+    if(totalRestMin>=3*60){
+      dedDly = totalRestMin/2;
+      if(totalRestMin>=10*60 && !gapForceHalf[0]){
+        const cov = localNightMaxCoverage(restStart, dlySu, r.gaps[0].restOffset);
+        if(cov>=8*60 && r.gaps[0].tzDiffOk) dedDly = totalRestMin;
+      }
+    }
+    const fdpDly = (leg2.effStaCursor + dlyDelta - r.first.suCursor) - dedDly;
+    const dlyOk = fdpDly <= fdpLimit && blockOk;
+    const setT2 = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+    setT2('tlReqStart', fmtClock(restStart));
+    setT2('tlReqDur', fmtHM(totalRestMin));
+    setT2('tlReqUntil', fmtClock(restUntil));
+    setT2('tlDlySu', fmtClock(dlySu));
+    setT2('tlDlyBo', fmtClock(dlyBo));
+    setT2('tlDlyBi', fmtClock(dlyBi));
+    setT2('tlDlyEnd', fmtClock(dlyEnd));
+    const verdictEl = document.getElementById('tlDlyVerdict');
+    if(verdictEl){ verdictEl.textContent = dlyOk ? '一連続勤務成立' : 'ステイ'; verdictEl.className = dlyOk ? 'dly-ok' : 'dly-stay'; }
+    setDlyRowsVisible(true);
+  }
   saveState();
 }
 
@@ -1128,6 +1160,13 @@ function showDelayGuide(r, restH, fdpLimit, blockOk){
   } else {
     el.innerHTML = `帰りの出発を遅らせても成立しません（区間単独でも上限を超えています）。下の必要休養を取って、次の勤務として組み直してください。`;
   }
+}
+
+
+function setDlyRowsVisible(v){
+  ['tlReqHead','tlReqRow','tlArrowRow','tlDlyRow'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.style.display = v?'':'none';
+  });
 }
 
 /* ============ 参照表描画 ============ */
