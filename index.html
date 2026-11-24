@@ -1150,7 +1150,7 @@ function updateResults(){
   const tzAdd = (tzT>=2) ? Math.ceil(tzT)*30 : 0;
 
   const restUntil = restStart + restH*60 + woclAdd + tzAdd;
-  const nextLead = parseFloat(document.getElementById('nextLead').value)||0;
+  const nextLead = (leg2 && leg2.stdCursor!==null && leg2.suCursor!==null) ? (leg2.stdCursor - leg2.suCursor) : (parseFloat(document.getElementById('nextLead').value)||0);
   document.getElementById('reqRestStart').textContent = fmtClock(restStart);
   document.getElementById('reqRestBase').textContent = restH;
   document.getElementById('reqRestWocl').textContent = woclAdd?fmtHM(woclAdd):'0+00';
@@ -1245,27 +1245,20 @@ function fillReqDlyRows(r, restH, fdpLimit, blockOk, needDly){
     return;
   }
   const leg2 = r.resolved[1];
-  const dlySu = rr.until;
-  const dlyDelta = dlySu - leg2.suCursor;
-  const dlyBo = dlySu + (leg2.stdCursor - leg2.suCursor);
+  // 案A: まず「一連続勤務のまま成立する最小の遅れ」を探し、見つかればその時刻を出す。
+  // 見つからなければ所要休養を取り切る時刻を出し、判定は「ステイ」とする。
+  const guide = findDelayGuide(r, restH, fdpLimit, blockOk);
+  const isFix = !!(guide && guide.kind==='fix');
+  const dlySu = isFix ? guide.su : rr.until;
+  const dlyBo = isFix ? guide.std : dlySu + (leg2.stdCursor - leg2.suCursor);
   const dlyBi = dlyBo + (leg2.effStaCursor - leg2.atdCursor);
   const dlyEnd = dlyBi + leg2.bufferMin;
-  let dedDly = 0;
-  if(rr.total>=3*60){
-    dedDly = rr.total/2;
-    if(rr.total>=10*60 && !gapForceHalf[0]){
-      const cov = localNightMaxCoverage(rr.restStart, dlySu, r.gaps[0].restOffset);
-      if(cov>=8*60 && r.gaps[0].tzDiffOk) dedDly = rr.total;
-    }
-  }
-  const fdpDly = (leg2.effStaCursor + dlyDelta - r.first.suCursor) - dedDly;
-  const dlyOk = fdpDly <= fdpLimit && blockOk;
   setT('tlDlySu', fmtClock(dlySu));
   setT('tlDlyBo', fmtClock(dlyBo));
   setT('tlDlyBi', fmtClock(dlyBi));
   setT('tlDlyEnd', fmtClock(dlyEnd));
   const verdictEl = document.getElementById('tlDlyVerdict');
-  if(verdictEl){ verdictEl.textContent = dlyOk ? '一連続勤務成立' : 'ステイ'; verdictEl.className = dlyOk ? 'dly-ok' : 'dly-stay'; }
+  if(verdictEl){ verdictEl.textContent = isFix ? '一連続勤務成立' : 'ステイ'; verdictEl.className = isFix ? 'dly-ok' : 'dly-stay'; }
 }
 
 /* ============ 参照表描画 ============ */
