@@ -386,6 +386,23 @@
   <div id="legs"></div>
 </section>
 
+
+      <div id="rrExceeded" style="display:none; margin:0 0 12px;">
+        <div class="delay-guide" id="delayGuide" style="display:none;"></div>
+        <p class="rr-title"><span id="reqTitleMain">上限超過時に必要な休養</span><br><span id="reqBreakdown">（連続<span id="reqRestBase">--</span>h + WOCL加算<span id="reqRestWocl">--</span> + 時差加算<span id="reqRestTz">--</span>）</span></p>
+        <div class="eq-row">
+          <div class="stat"><div class="stat-label">休養開始時刻</div><div class="stat-val" id="reqRestStart">--</div></div>
+          <div class="eq-sym">+</div>
+          <div class="stat"><div class="stat-label">必要休養時間（合計）</div><div class="stat-val" id="reqRestTotal">--</div></div>
+          <div class="eq-sym">=</div>
+          <div class="stat"><div class="stat-label">休養完了</div><div class="stat-val" id="reqRestUntil">--</div></div>
+        </div>
+        <div class="stat-row" style="margin-top:8px;">
+          <div class="stat"><div class="stat-label">次便 出頭可</div><div class="stat-val" id="reqNextSu">--</div></div>
+          <div class="stat"><div class="stat-label">次便 STD目安</div><div class="stat-val" id="reqNextStd">--</div></div>
+        </div>
+      </div>
+
 <!-- ==== 2. 判定結果 ==== -->
 <section>
   <p class="sec-title"><span class="num">02</span> 判定結果</p>
@@ -426,21 +443,29 @@
         <b id="rrOkMsg">--</b>
       </div>
 
-      <div id="rrExceeded" style="display:none;">
-        <div class="delay-guide" id="delayGuide" style="display:none;"></div>
-        <p class="rr-title"><span id="reqTitleMain">上限超過時に必要な休養</span><br><span id="reqBreakdown">（連続<span id="reqRestBase">--</span>h + WOCL加算<span id="reqRestWocl">--</span> + 時差加算<span id="reqRestTz">--</span>）</span></p>
-        <div class="eq-row">
-          <div class="stat"><div class="stat-label">休養開始時刻</div><div class="stat-val" id="reqRestStart">--</div></div>
-          <div class="eq-sym">+</div>
-          <div class="stat"><div class="stat-label">必要休養時間（合計）</div><div class="stat-val" id="reqRestTotal">--</div></div>
-          <div class="eq-sym">=</div>
-          <div class="stat"><div class="stat-label">休養完了</div><div class="stat-val" id="reqRestUntil">--</div></div>
+      <div id="dlyResult" style="display:none;">
+        <p class="rr-title">DLY Set後の計算</p>
+        <div id="dlyCalcBody">
+          <div class="kv-grid">
+            <div class="kv"><span class="k">飛行勤務開始時刻</span><span class="v hi" id="dlyKvSu">--</span></div>
+            <div class="kv"><span class="k">適用時間帯 / 着陸回数</span><span class="v" id="dlyKvBand">--</span></div>
+          </div>
+          <div class="calc-block">
+            <div class="calc-line"><span class="calc-basis">一連続勤務時間（減算前）</span><span class="calc-num" id="dlyKvTotal">--</span></div>
+            <div class="calc-line calc-minus"><span class="calc-op">−)</span><span class="calc-basis" id="dlyKvDedBasis"></span><span class="calc-num purple" id="dlyKvDeduction">--</span></div>
+            <div class="calc-line"><span class="calc-basis">飛行勤務時間（減算後）</span><span class="calc-num hi" id="dlyKvFdp">--</span></div>
+          </div>
+          <div class="kv-grid">
+            <div class="kv"><span class="k">飛行勤務時間 上限</span><span class="v hi" id="dlyKvLimit">--</span></div>
+            <div class="kv"><span class="k">乗務時間（ブロックタイム）/ 上限</span><span class="v" id="dlyKvBlock">--</span></div>
+          </div>
         </div>
-        <div class="stat-row" style="margin-top:8px;">
-          <div class="stat"><div class="stat-label">次便 出頭可</div><div class="stat-val" id="reqNextSu">--</div></div>
-          <div class="stat"><div class="stat-label">次便 STD目安</div><div class="stat-val" id="reqNextStd">--</div></div>
-        </div>
+        <div class="banner ok" id="dlyBannerOk" style="display:none;"></div>
+        <div class="banner stay" id="dlyBannerStay" style="display:none;"></div>
+        <div class="banner bad" id="dlyBannerBad" style="display:none;"></div>
+        <p class="note" id="dlyNoneMsg" style="display:none;">現在の予定で成立するため、DLY Setは不要です。</p>
       </div>
+
     </div>
   </div>
 
@@ -1128,6 +1153,7 @@ function updateResults(){
       rrOk.style.display='none';
     }
     fillReqDlyRows(r, restH, fdpLimit, blockOk, false);
+    fillDlyResult(r, restH, fdpLimit, blockOk, false);
     saveState();
     return;
   }
@@ -1172,6 +1198,7 @@ function updateResults(){
   if(bd) bd.style.display = isFix ? 'none' : '';
   showDelayGuide(r, restH, fdpLimit, blockOk);
   fillReqDlyRows(r, restH, fdpLimit, blockOk, true);
+  fillDlyResult(r, restH, fdpLimit, blockOk, true);
   saveState();
 }
 
@@ -1243,6 +1270,56 @@ function calcRequiredRest(r, restH){
   const total = restH*60 + woclAdd + tzAdd;
   return { restStart, woclAdd, tzAdd, total, until: restStart + total };
 }
+
+/* 02判定結果の右側: DLY Set後の計算を、左側と同じ形式で表示する。 */
+function fillDlyResult(r, restH, fdpLimit, blockOk, needDly){
+  const wrap = document.getElementById('dlyResult');
+  if(!wrap) return;
+  const setT = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+  const show = (id,on)=>{ const e=document.getElementById(id); if(e) e.style.display=on?'block':'none'; };
+  if(!r || !r.resolved || r.resolved.length!==2){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  if(!needDly){
+    show('dlyCalcBody',false); show('dlyBannerOk',false); show('dlyBannerStay',false); show('dlyBannerBad',false); show('dlyNoneMsg',true);
+    return;
+  }
+  show('dlyNoneMsg',false);
+  const guide = findDelayGuide(r, restH, fdpLimit, blockOk);
+  if(guide && guide.kind==='fix'){
+    show('dlyCalcBody',true); show('dlyBannerStay',false); show('dlyBannerBad',false);
+    setT('dlyKvSu', document.getElementById('kvSuTime').textContent);
+    setT('dlyKvBand', document.getElementById('kvBand').textContent);
+    const gross = (r.last.effStaCursor + guide.delta) - r.first.suCursor;
+    setT('dlyKvTotal', fmtHM(gross));
+    setT('dlyKvDedBasis', guide.dedFull ? '(-休養時間)' : '(-休養時間 × 1/2)');
+    setT('dlyKvDeduction', fmtHM(gross - guide.fdp));
+    setT('dlyKvFdp', fmtHM(guide.fdp));
+    setT('dlyKvLimit', fmtHM(fdpLimit));
+    setT('dlyKvBlock', document.getElementById('kvBlock').textContent);
+    const b = document.getElementById('dlyBannerOk');
+    if(b) b.innerHTML = `DLY Set（出頭 <b>${fmtClock(guide.su)}</b> / STD <b>${fmtClock(guide.std)}</b>）では <b>${fmtHM(guide.margin)}（${Math.round(guide.margin)}分）の余裕</b> があり、一連続勤務として成立します。`;
+    show('dlyBannerOk',true);
+  } else {
+    show('dlyCalcBody',false); show('dlyBannerOk',false);
+    const checks = r.resolved.map((l,i)=>{
+      const lim = FDP_TABLE[localBand(l.suCursor, r.offset)][2];
+      const fdpLeg = l.effStaCursor - l.suCursor;
+      const blkLeg = l.effStaCursor - l.atdCursor;
+      return { i, fdpLeg, blkLeg, lim, ok: fdpLeg<=lim[1] && blkLeg<=lim[0] };
+    });
+    const detail = checks.map(c=>`${LEG_NAMES[c.i]||('区間'+(c.i+1))}: FDP ${fmtHM(c.fdpLeg)}/${fmtHM(c.lim[1])}`).join('、');
+    if(guide && guide.kind==='stay'){
+      const b = document.getElementById('dlyBannerStay');
+      if(b) b.innerHTML = `DLY Set（出頭 <b>${fmtClock(guide.su)}</b> / STD <b>${fmtClock(guide.std)}</b>）で休養が所要休養（${restH}時間）に達し、<b>ステイパターンとして成立</b>します。各区間の独立判定: ${detail}。`;
+      show('dlyBannerStay',true); show('dlyBannerBad',false);
+    } else {
+      const b = document.getElementById('dlyBannerBad');
+      if(b) b.innerHTML = `DLY Setしても一連続勤務・ステイのいずれでも成立しません（独立判定で上限を超える区間があります: ${detail}）。`;
+      show('dlyBannerBad',true); show('dlyBannerStay',false);
+    }
+  }
+}
+
 /* 表の必要休養行を埋める。needDly=false のとき DLY Set行は空欄。 */
 function fillReqDlyRows(r, restH, fdpLimit, blockOk, needDly){
   if(!r || r.resolved.length!==2 || !r.gaps[0]) return;
