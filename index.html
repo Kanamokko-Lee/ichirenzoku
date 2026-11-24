@@ -428,7 +428,7 @@
 
       <div id="rrExceeded" style="display:none;">
         <div class="delay-guide" id="delayGuide" style="display:none;"></div>
-        <p class="rr-title">上限超過時に必要な休養<br>（連続<span id="reqRestBase">--</span>h + WOCL加算<span id="reqRestWocl">--</span> + 時差加算<span id="reqRestTz">--</span>）</p>
+        <p class="rr-title"><span id="reqTitleMain">上限超過時に必要な休養</span><br><span id="reqBreakdown">（連続<span id="reqRestBase">--</span>h + WOCL加算<span id="reqRestWocl">--</span> + 時差加算<span id="reqRestTz">--</span>）</span></p>
         <div class="eq-row">
           <div class="stat"><div class="stat-label">休養開始時刻</div><div class="stat-val" id="reqRestStart">--</div></div>
           <div class="eq-sym">+</div>
@@ -1149,16 +1149,26 @@ function updateResults(){
   if(tzT>12) tzT = 24 - tzT;
   const tzAdd = (tzT>=2) ? Math.ceil(tzT)*30 : 0;
 
-  const restUntil = restStart + restH*60 + woclAdd + tzAdd;
+  // 最小遅延で一連続勤務が成立する場合は、パネルの休養もその解決に合わせる（表のDLY Set行と一致させる）。
+  // 遅らせても収まらない場合のみ、所要休養＋加算（ステイ前提）の表示にする。
+  const guide = findDelayGuide(r, restH, fdpLimit, blockOk);
+  const isFix = !!(guide && guide.kind==='fix');
+  const totalRest = isFix ? guide.dur : restH*60 + woclAdd + tzAdd;
+  const restUntil = restStart + totalRest;
   const nextLead = (leg2 && leg2.stdCursor!==null && leg2.suCursor!==null) ? (leg2.stdCursor - leg2.suCursor) : (parseFloat(document.getElementById('nextLead').value)||0);
   document.getElementById('reqRestStart').textContent = fmtClock(restStart);
   document.getElementById('reqRestBase').textContent = restH;
   document.getElementById('reqRestWocl').textContent = woclAdd?fmtHM(woclAdd):'0+00';
   document.getElementById('reqRestTz').textContent = tzAdd?fmtHM(tzAdd):'0+00';
-  document.getElementById('reqRestTotal').textContent = fmtHM(restH*60+woclAdd+tzAdd);
+  document.getElementById('reqRestTotal').textContent = fmtHM(totalRest);
   document.getElementById('reqRestUntil').textContent = fmtClock(restUntil);
   document.getElementById('reqNextSu').textContent = fmtClock(restUntil);
   document.getElementById('reqNextStd').textContent = fmtClock(restUntil+nextLead);
+  const tMain = document.getElementById('reqTitleMain');
+  if(tMain) tMain.textContent = isFix ? '一連続勤務の成立に必要な休養' : '上限超過時に必要な休養';
+  const bd = document.getElementById('reqBreakdown');
+  if(bd) bd.style.display = isFix ? 'none' : '';
+  showDelayGuide(r, restH, fdpLimit, blockOk);
   fillReqDlyRows(r, restH, fdpLimit, blockOk, true);
   saveState();
 }
