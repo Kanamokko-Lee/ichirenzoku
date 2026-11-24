@@ -750,8 +750,11 @@ function renderPatterns(){
 }
 
 /* ============ 描画 ============ */
-function legMetaHTML(l){
-  return `<span>出頭 <select onchange="updateLeg(${l.id},'suLeadH',this.value)">${leadOpts(l.suLeadH,4,1)}</select>時間 <select onchange="updateLeg(${l.id},'suLeadM',this.value)">${leadOpts(l.suLeadM,55,5)}</select>分前</span>
+function legMetaHTML(l, isLast){
+  const lead = `<span>出頭 <select onchange="updateLeg(${l.id},'suLeadH',this.value)">${leadOpts(l.suLeadH,4,1)}</select>時間 <select onchange="updateLeg(${l.id},'suLeadM',this.value)">${leadOpts(l.suLeadM,55,5)}</select>分前</span>`;
+  // 最後の区間は業務終了が判定に無関係（飛行勤務時間はブロックインまで）のため、到着空港・通関は出さない
+  if(isLast) return lead;
+  return lead + `
     <span>到着空港 <select onchange="updateLeg(${l.id},'arrAirport',this.value)">
       <option value="HND_NRT" ${l.arrAirport==='HND_NRT'?'selected':''}>羽田・成田</option>
       <option value="OSAKA_NAGOYA" ${l.arrAirport==='OSAKA_NAGOYA'?'selected':''}>大阪・名古屋</option>
@@ -778,11 +781,11 @@ function legBlockRows(l, i){
     <tr>
       <td${fill}><span class="cell-flex"><span class="cell-lab">B/O</span><input class="tl-time" id="tlBo${n}" type="time" onchange="setAtd(${l.id},this.value)"></span></td>
       <td${fill}><span class="cell-flex"><span class="cell-lab">B/I</span><input class="tl-time" id="tlBi${n}" type="time" onchange="setAta(${l.id},this.value)"></span></td>
-      <td class="acc end-cell" id="tlEnd${n}">--:--</td>
+      ${i===1 ? '<td class="end-cell"></td>' : `<td class="acc end-cell" id="tlEnd${n}">--:--</td>`}
       <td class="fdur" id="tlBlk${n}">--+--</td>
       <td class="lbl">Block Time</td>
     </tr>
-    <tr><td class="meta-cell" colspan="7">${legMetaHTML(l)}</td></tr>`;
+    <tr><td class="meta-cell" colspan="7">${legMetaHTML(l, i===1)}</td></tr>`;
 }
 function renderUnified(wrap){
   const holder = document.createElement('div');
@@ -1001,7 +1004,6 @@ function updateResults(){
     setT('tlSu2', fmtClock(t2.suCursor));
     const bo2=document.getElementById('tlBo2'); if(bo2){ bo2.value = legs[1].atd || legs[1].std || ''; bo2.classList.toggle('diff', !!legs[1].atd && !!legs[1].std && legs[1].atd!==legs[1].std); }
     const bi2=document.getElementById('tlBi2'); if(bi2){ bi2.value = legs[1].ata || legs[1].sta || ''; bi2.classList.toggle('diff', !!legs[1].ata && !!legs[1].sta && legs[1].ata!==legs[1].sta); }
-    setT('tlEnd2', fmtClock(t2.businessEndCursor));
     setT('tlBlk2', (t2.atdCursor!==null&&t2.effStaCursor!==null)?fmtHM(t2.effStaCursor-t2.atdCursor):'--+--');
   }
 
@@ -1266,7 +1268,7 @@ function fillReqDlyRows(r, restH, fdpLimit, blockOk, needDly){
   setT('tlDlySu', fmtClock(dlySu));
   setT('tlDlyBo', fmtClock(dlyBo));
   setT('tlDlyBi', fmtClock(dlyBi));
-  setT('tlDlyEnd', fmtClock(dlyEnd));
+  setT('tlDlyEnd', '');
   const verdictEl = document.getElementById('tlDlyVerdict');
   if(verdictEl){ verdictEl.textContent = isFix ? '一連続勤務成立' : 'ステイ'; verdictEl.className = isFix ? 'dly-ok' : 'dly-stay'; }
 }
